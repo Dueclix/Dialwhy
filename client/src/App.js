@@ -29,12 +29,12 @@ import Privacy from "./Components/Privacy.jsx";
 import Payment from "./Components/Payment.jsx";
 import AskToJoin from "./Components/Room2.jsx";
 import MyAccount from "./Components/Account";
-import userStyles from "./User.module.css"; // Import the CSS module
+import userStyles from "./User.module.css";
 import LoginForm from "./pages/login.jsx";
 import { Toaster } from "react-hot-toast";
 import ZegoAPI from "./pages/zegoAPI.jsx";
 import Room from "./Components/Room.jsx";
-import styles from "./Admin.module.css"; // Import the CSS module
+import styles from "./Admin.module.css";
 import About from "./Components/About";
 import Rooms from "./Components/Rooms";
 // import logo from './Images/logo.svg';
