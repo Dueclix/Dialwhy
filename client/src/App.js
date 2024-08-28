@@ -37,7 +37,6 @@ import Room from "./Components/Room.jsx";
 import styles from "./Admin.module.css";
 import About from "./Components/About";
 import Rooms from "./Components/Rooms";
-// import logo from './Images/logo.svg';
 import Home from "./Components/Home";
 import { useEffect } from "react";
 import "./App.css";

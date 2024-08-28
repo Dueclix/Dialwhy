@@ -18,7 +18,7 @@ function CreateRoom() {
     if (!localStorage.getItem("user")) {
       navigate("/login");
     }
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     let loggedinUser = localStorage.getItem("user");
@@ -88,7 +88,18 @@ function CreateRoom() {
                     className="form-control"
                     placeholder="Room Name"
                     value={roomName}
-                    onChange={(e) => setRoomName(e.target.value)}
+                    onChange={(e) => {
+                      let sanitizedValue = e.target.value
+                        .trim()
+                        .replace(/\s+/g, "-");
+
+                      sanitizedValue = sanitizedValue.replace(
+                        /[^a-zA-Z0-9\-]/g,
+                        ""
+                      );
+
+                      setRoomName(sanitizedValue);
+                    }}
                   />
                 </div>
                 {/* <div className="mb-3 col-12 col-md-6">
