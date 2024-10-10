@@ -106,7 +106,7 @@ function AccountNav() {
               </li> */}
               <li
                 className={`nav-item ${
-                  location.pathname === "/payment" ? "active" : ""
+                  location.pathname === "/account" ? "active" : ""
                 }`}
               >
                 <Link className="nav-link" to="/account">
@@ -115,7 +115,7 @@ function AccountNav() {
               </li>
               <li
                 className={`nav-item ${
-                  location.pathname === "/video-background" ? "active" : ""
+                  location.pathname === "/change-password" ? "active" : ""
                 }`}
               >
                 <Link className="nav-link" to="/change-password">
@@ -124,14 +124,16 @@ function AccountNav() {
               </li>
               <li
                 className={`nav-item ${
-                  location.pathname === "/video-background" ? "active" : ""
+                  location.pathname === "/rooms" ? "active" : ""
                 }`}
               >
                 <Link className="nav-link" to="/rooms">
                   <i className="fa fa-user"></i> My Rooms/Invited
                 </Link>
               </li>
-              <li className="nav-item">
+              <li className={`nav-item ${
+                  location.pathname === "/contacts" ? "active" : ""
+                }`}>
                 <Link className="nav-link" to="/contacts">
                   <Contacts /> Contacts
                 </Link>
@@ -147,9 +149,7 @@ function AccountNav() {
               </li>
 
               <li
-                className={`nav-item ${
-                  location.pathname === "/video-background" ? "active" : ""
-                }`}
+                className="nav-item"
               >
                 {/* <Link className="nav-link" to="/video-background">
                 <i className="fa fa-user"></i>   Invitation List
@@ -180,7 +180,7 @@ function AccountNav() {
                   )}
                 </li>
               ))} */}
-              <li className={`nav-item`}>
+              <li className="nav-item">
                 <Link className="nav-link" onClick={logoutHandle}>
                   <i class="fa fa-sign-out" aria-hidden="true"></i> Logout
                 </Link>

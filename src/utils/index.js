@@ -4,6 +4,7 @@ export const roundOff = (number, count = 2) => {
 export const discount = (price, oldPrice) => oldPrice ? roundOff(100 * (oldPrice - price) / oldPrice) : 0
 const dev = process.env.NODE_ENV !== "production";
 export const server = dev ? "http://localhost:3000" : "https://hospitania.vercel.app";
+export const appServer = dev ? "http://localhost:5000" : "https://dvcall.com";
 
 // Delete Product from List By Id
 export const deleteProduct = (list, id) => {

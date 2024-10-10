@@ -1,6 +1,16 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+input,
+button,
+input:active,
+button:active {
+  border-color: transparent !important;
+  outline: none !important;
+  border: none !important;
+}
+
 /* 
 .modal {
   display: flex; 
@@ -37,28 +47,24 @@
   text-decoration: none;
   cursor: pointer;
 }
+
 button {
   margin: 10px;
 }
 
-
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 .code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
-
-
-
-
 
 input:focus {
   outline: none;
@@ -70,6 +76,7 @@ input:focus {
   background-size: 25px;
   background-repeat: no-repeat;
 }
+
 #table,
 #td,
 #th {
@@ -77,8 +84,7 @@ input:focus {
   border-collapse: collapse;
   /* border-radius: 10px; */
 }
+
 #table {
   border-radius: 10px;
 }
-
-
