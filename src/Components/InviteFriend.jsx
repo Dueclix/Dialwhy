@@ -60,7 +60,7 @@ const InviteFriend = () => {
         </div>
       )}
       <h1 className="font-bold text-black">INVITE NEW FRIEND</h1>
-      <div className="mb-2 px-1 py-3 invite-input">
+      <div className="d-flex mb-2 px-1 py-3 invite-input">
         <input
           type="text"
           placeholder="Enter email id..."
@@ -68,7 +68,7 @@ const InviteFriend = () => {
           onChange={(e) => setEmailVal(e.target.value)}
         />
         <button onClick={searchUser}>
-          <SearchOutlined />
+          <SearchOutlined fontSize="inherit" />
         </button>
       </div>
       {InviteSearch && (

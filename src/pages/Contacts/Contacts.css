@@ -17,3 +17,7 @@ h2 {
 .sub-nav-list>li {
   cursor: pointer;
 }
+
+.invite-input > button {
+  font-size: 22px;
+}
