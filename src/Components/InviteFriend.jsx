@@ -19,24 +19,28 @@ const InviteFriend = () => {
   };
 
   const sendRequest = async () => {
-    axios.post(`${appServer}/api/v1/friends/request`, {
-      requestUser: userId,
-      acceptUser: InviteSearch._id,
-    }).then(res=>{
-      setStatusCode(res.status);
-      setStatusMessage(res.data);
-    }).catch(reason=>{
-      setStatusCode(reason.response.status);
-      setStatusMessage(reason.response.data);
-      console.clear();
-    }).finally(()=>{
-      setTimeout(() => {
-        setStatusCode(null);
-        setInviteSearch(null);
-        setStatusMessage(null);
-      }, 3000);
-    });
-  };  
+    axios
+      .post(`${appServer}/api/v1/friends/request`, {
+        requestUser: userId,
+        acceptUser: InviteSearch._id,
+      })
+      .then((res) => {
+        setStatusCode(res.status);
+        setStatusMessage(res.data);
+      })
+      .catch((reason) => {
+        setStatusCode(reason.response.status);
+        setStatusMessage(reason.response.data);
+        console.clear();
+      })
+      .finally(() => {
+        setTimeout(() => {
+          setStatusCode(null);
+          setInviteSearch(null);
+          setStatusMessage(null);
+        }, 3000);
+      });
+  };
 
   return (
     <div className="d-flex align-items-center flex-column w-100 h-100 my-5">
@@ -67,30 +71,28 @@ const InviteFriend = () => {
           <SearchOutlined />
         </button>
       </div>
-      <div className="d-flex justify-content-between align-items-center w-75">
-        {InviteSearch && (
-          <>
-            <div className="d-flex">
-              <img
-                src={InviteSearch.url ? InviteSearch.url : "/Profile.png"}
-                alt=""
-                width={40}
-                height={40}
-                className="rounded-circle mr-3"
-              />
-              <div>
-                <h2 className="text-black">{InviteSearch.name}</h2>
-                <span>{InviteSearch.role}</span>
-              </div>
-            </div>
+      {InviteSearch && (
+        <div className="d-flex justify-content-between align-items-center w-75">
+          <div className="d-flex">
+            <img
+              src={InviteSearch.url ? InviteSearch.url : "/Profile.png"}
+              alt=""
+              width={40}
+              height={40}
+              className="rounded-circle mr-3"
+            />
             <div>
-              <button onClick={sendRequest}>
-                <Send />
-              </button>
+              <h2 className="text-black">{InviteSearch.name}</h2>
+              <span>{InviteSearch.role}</span>
             </div>
-          </>
-        )}
-      </div>
+          </div>
+          <div>
+            <button onClick={sendRequest}>
+              <Send />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
