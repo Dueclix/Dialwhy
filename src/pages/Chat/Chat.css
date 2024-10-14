@@ -1,0 +1,68 @@
+.chatting {
+    height: 87.5%;
+}
+
+.sidebar {
+    box-shadow: 2px 10px 10px #00000020;
+    height: 100%;
+    width: 20%;
+}
+
+.sidebar > li {
+    border-bottom: 0.5px solid whitesmoke;
+}
+
+.sidebar > li:hover {
+    background-color: whitesmoke;
+}
+
+.chatbox {
+    width: 80%;
+}
+
+.chatbox > div > div {
+    box-shadow: 5px 10px 10px #00000020;
+    background-color: #eeeeee;
+}
+
+.chatbox-nav button {
+    border: 2px solid #1285a8 !important;
+    border-radius: 15px;
+    color: #1285a8;
+}
+
+.chatbox-footer > input {
+    background-color: transparent;
+    width: 90%;
+}
+
+.message > div {
+    max-width: 150px;
+}
+
+.message > span {
+    font-size: 10px;
+}
+
+.message > div > div {
+    overflow-wrap: break-word;
+    text-wrap: wrap;
+}
+
+.message > div > div > ul {
+    background-color: whitesmoke;
+    box-shadow: 0 0 10px #00000020;
+}
+
+.message > div > div > ul > li:hover {
+    background-color: #ebeaea;
+}
+
+.message-edit {
+    background-color: #00000070;
+    z-index: 500;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    top: 0;
+}

@@ -9,36 +9,37 @@ import CreateLink from "./pages/navigationLinks/createLink.jsx";
 import UpdateLink from "./pages/navigationLinks/updateLink.jsx";
 import VideoBackground from "./Components/VideoBackground.jsx";
 import LandingPage from "./pages/Landing-Page/LandingPage.jsx";
+import PendingUsers from "./pages/View-Users/PendingUsers.jsx";
 import ForgotPassword from "./Components/ForgotPassword.jsx";
 import Changepassword from "./Components/Changepassword.jsx";
 import CheckoutReview from "./Components/CheckoutReview.jsx";
 import ResetPassword from "./Components/ResetPassword.jsx";
-import PendingUsers from "./pages/View-Users/PendingUsers.jsx";
-import CreateMember from "./Components/CreateMembers.jsx";
 import EditUser from "./pages/Create-Users/CreateUsers.jsx";
+import CreateMember from "./Components/CreateMembers.jsx";
 import ViewUsers from "./pages/View-Users/ViewUsers.jsx";
-import Contacts from "./pages/Contacts/Contacts.jsx";
 import LoginSignup from "./Components/LoginSignup.jsx";
+import Contacts from "./pages/Contacts/Contacts.jsx";
+import CreateRoom from "./Components/CreateRoom.jsx";
 import Mymembers from "./Components/Mymembers.jsx";
 import EditAPIKeys from "./pages/EditAPIKeys.jsx";
-import CreateRoom from "./Components/CreateRoom.jsx";
 import GetQuote from "./Components/GetQuote.jsx";
 import Checkout from "./Components/Checkout.jsx";
 import EditRoom from "./Components/EditRoom.jsx";
+import MyAccount from "./Components/Account.jsx";
 import Contact from "./Components/Contact.jsx";
 import Privacy from "./Components/Privacy.jsx";
 import Payment from "./Components/Payment.jsx";
 import AskToJoin from "./Components/Room2.jsx";
-import MyAccount from "./Components/Account.jsx";
 import userStyles from "./User.module.css";
+import About from "./Components/About.jsx";
+import Rooms from "./Components/Rooms.jsx";
 import LoginForm from "./pages/login.jsx";
 import { Toaster } from "react-hot-toast";
 import ZegoAPI from "./pages/zegoAPI.jsx";
+import Chat from "./pages/Chat/Chat.jsx";
+import Home from "./Components/Home.jsx";
 import Room from "./Components/Room.jsx";
 import styles from "./Admin.module.css";
-import About from "./Components/About.jsx";
-import Rooms from "./Components/Rooms.jsx";
-import Home from "./Components/Home.jsx";
 import { useEffect } from "react";
 import "./App.css";
 
@@ -73,6 +74,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route exact path="/account" element={<MyAccount />} />
           <Route exact path="/Contacts" element={<Contacts />} />
+          <Route exact path="/Chat" element={<Chat />} />
           <Route exact path="/room/:roomId" element={<Room />} />
           <Route exact path="/createroom" element={<CreateRoom />} />
           <Route exact path="/about" element={<About />} />

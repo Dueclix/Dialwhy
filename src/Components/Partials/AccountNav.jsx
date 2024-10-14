@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import React, { useEffect, useState } from "react";
-import { Contacts } from "@mui/icons-material";
+import { Contacts, Message } from "@mui/icons-material";
 import { server } from "../LoginSignup";
 import Cookies from "js-cookie";
 import axios from "axios";
@@ -136,6 +136,11 @@ function AccountNav() {
                 }`}>
                 <Link className="nav-link" to="/contacts">
                   <Contacts /> Contacts
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link className="nav-link" to="/chat">
+                  <Message /> Chat
                 </Link>
               </li>
               <li
