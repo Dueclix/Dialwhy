@@ -1,68 +1,79 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  overflow: hidden !important;
+}
+
+.digecoly-list-item > a {
+    margin: 20px 15px;
+}
+
 .chatting {
-    height: 87.5%;
+  height: 87.5%;
 }
 
 .sidebar {
-    box-shadow: 2px 10px 10px #00000020;
-    height: 100%;
-    width: 20%;
+  box-shadow: 2px 10px 10px #00000020;
+  height: 100%;
+  width: 20%;
 }
 
 .sidebar > li {
-    border-bottom: 0.5px solid whitesmoke;
+  border-bottom: 0.5px solid whitesmoke;
 }
 
 .sidebar > li:hover {
-    background-color: whitesmoke;
+  background-color: whitesmoke;
 }
 
 .chatbox {
-    width: 80%;
+  width: 80%;
 }
 
 .chatbox > div > div {
-    box-shadow: 5px 10px 10px #00000020;
-    background-color: #eeeeee;
+  box-shadow: 5px 10px 10px #00000020;
+  background-color: #eeeeee;
 }
 
 .chatbox-nav button {
-    border: 2px solid #1285a8 !important;
-    border-radius: 15px;
-    color: #1285a8;
+  border: 2px solid #1285a8 !important;
+  border-radius: 15px;
+  color: #1285a8;
 }
 
 .chatbox-footer > input {
-    background-color: transparent;
-    width: 90%;
+  background-color: transparent;
+  width: 90%;
 }
 
 .message > div {
-    max-width: 150px;
+  max-width: 150px;
 }
 
 .message > span {
-    font-size: 10px;
+  font-size: 10px;
 }
 
 .message > div > div {
-    overflow-wrap: break-word;
-    text-wrap: wrap;
+  overflow-wrap: break-word;
+  text-wrap: wrap;
 }
 
 .message > div > div > ul {
-    background-color: whitesmoke;
-    box-shadow: 0 0 10px #00000020;
+  background-color: whitesmoke;
+  box-shadow: 0 0 10px #00000020;
 }
 
 .message > div > div > ul > li:hover {
-    background-color: #ebeaea;
+  background-color: #ebeaea;
 }
 
 .message-edit {
-    background-color: #00000070;
-    z-index: 500;
-    bottom: 0;
-    right: 0;
-    left: 0;
-    top: 0;
+  background-color: #00000070;
+  z-index: 500;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  top: 0;
 }

@@ -103,27 +103,27 @@ function Navbar() {
             <div className="flex-grow-1 pl-0">
               <nav className="digecoly-menu d-flex align-items-center justify-content-end">
                 <ul className="nav_scroll bg-slate-600">
-                  <li>
+                  <li className="digecoly-list-item">
                     <Link to="/">Home</Link>
                   </li>
-                  <li>
+                  <li className="digecoly-list-item">
                     <a href={"https://dialwhy.com/about_us.php"}>About</a>
                   </li>
-                  <li>
+                  <li className="digecoly-list-item">
                     <a href={"https://dialwhy.com/contact_us.php"}>
                       Contact Us
                     </a>
                   </li>
                   {savedUser ? (
-                    <li>
+                    <li className="digecoly-list-item">
                       <Link to="/account">Account</Link>
                     </li>
                   ) : (
                     <>
-                      <li>
+                      <li className="digecoly-list-item">
                         <Link to="/login">Login</Link>
                       </li>
-                      <li>
+                      <li className="digecoly-list-item">
                         <Link to="/login">Register</Link>
                       </li>
                     </>
