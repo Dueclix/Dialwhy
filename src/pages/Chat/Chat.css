@@ -53,6 +53,7 @@
 
 .message > div {
   max-width: 150px;
+  overflow: visible !important;
 }
 
 .message > span {
