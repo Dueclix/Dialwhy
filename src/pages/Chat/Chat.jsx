@@ -4,8 +4,8 @@ import MessageBox from "../../Components/MessageBox";
 import React, { useEffect, useState } from "react";
 import { appServer } from "../../utils";
 import socket from "../../utils/socket";
+import "./Chat.module.css";
 import axios from "axios";
-import "./Chat.css";
 
 const Chat = () => {
   const userId = JSON.parse(localStorage.getItem("user"))._id;
