@@ -201,14 +201,11 @@ const Chat = () => {
       }
     };
 
-    const OneToOneEdited = ({
-      messageId,
-      updatedMessage,
-    }) => {
+    const OneToOneEdited = ({ messageId, updatedMessage }) => {
       setMessagesList((prev) => {
         const index = prev.findIndex((message) => message._id === messageId);
         if (index === -1) return prev;
-  
+
         const updatedMessages = [...prev];
         updatedMessages[index] = {
           ...updatedMessages[index],
@@ -231,7 +228,7 @@ const Chat = () => {
   }, [userId, ws]);
 
   return (
-    <div>
+    <div className="h-100">
       <div style={{ height: "12.5%" }}>
         <Navbar />
       </div>
@@ -282,10 +279,10 @@ const Chat = () => {
                   </div>
                   <div>
                     <button className="mx-4 px-2 py-1">
-                      <Call fontSize="medium" />
+                      <Call fontSize="inherit" />
                     </button>
                     <button className="mx-4 px-2 py-1">
-                      <VideoCall fontSize="medium" />
+                      <VideoCall fontSize="inherit" />
                     </button>
                   </div>
                 </div>
@@ -311,7 +308,7 @@ const Chat = () => {
                     onChange={(e) => setMessage(e.target.value)}
                   />
                   <button onClick={sendMessage}>
-                    <Send />
+                    <Send fontSize="inherit" />
                   </button>
                 </div>
               </div>
