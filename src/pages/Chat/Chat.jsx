@@ -1,5 +1,5 @@
 import Navbar from "../../Components/Partials/Navbar/Navbar";
-import { Call, Send, VideoCall } from "@mui/icons-material";
+import { Send, VideoCall } from "@mui/icons-material";
 import MessageBox from "../../Components/MessageBox";
 import React, { useEffect, useState } from "react";
 import { appServer } from "../../utils";
@@ -278,9 +278,6 @@ const Chat = () => {
                     <h2 className="d-inline-block">{Friend.name}</h2>
                   </div>
                   <div>
-                    <button className="mx-4 px-2 py-1">
-                      <Call fontSize="inherit" />
-                    </button>
                     <button className="mx-4 px-2 py-1">
                       <VideoCall fontSize="inherit" />
                     </button>

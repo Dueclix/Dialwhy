@@ -13,6 +13,12 @@
   overflow: auto !important;
 }
 
+#sticky-header,
+#sticky-header *,
+.mobile_header {
+  overflow: unset !important;
+}
+
 input,
 button,
 input:active,
