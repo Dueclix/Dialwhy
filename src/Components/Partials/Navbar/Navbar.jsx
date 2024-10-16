@@ -127,8 +127,8 @@ function Navbar() {
               CallAudio.play();
 
               setTimeout(() => {
-                setNewCallId(undefined);
-                setCallerData(undefined);
+                setNewCallId(null);
+                setCallerData(null);
                 CallAudio.pause();
                 CallAudio.currentTime = 0;
               }, 15000);
