@@ -1,7 +1,10 @@
 import { Link, useNavigate } from "react-router-dom";
+import { Call, CallEnd } from "@mui/icons-material";
 import RegisterModal from "./modals/Register";
 import { useState, useEffect } from "react";
 import { server } from "../../LoginSignup";
+import { appServer } from "../../../utils";
+import socket from "../../../utils/socket";
 import ForgotModal from "./modals/Forgot";
 import LoginModal from "./modals/Login";
 import "../../Styles/Navbar/Navbar.css";
@@ -9,13 +12,19 @@ import Cookies from "js-cookie";
 import axios from "axios";
 
 function Navbar() {
-  const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [CallerData, setCallerData] = useState(null);
+  const [NewCallId, setNewCallId] = useState(null);
+  const [CallAudio, setCallAudio] = useState(null);
+  const handleModalClose = (e) => setShowModal(e);
   const [showModal, setShowModal] = useState("");
+  const handleModalShow = (e) => setShowModal(e);
+  const [isOpen, setIsOpen] = useState(false);
   const [savedUser, setUser] = useState("");
   const navigate = useNavigate();
-  const handleModalClose = (e) => setShowModal(e);
-  const handleModalShow = (e) => setShowModal(e);
+  const ws = socket;
+
+  ws.connect();
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -56,6 +65,7 @@ function Navbar() {
   useEffect(() => {
     storedUser = localStorage.getItem("user");
     if (storedUser) {
+      setCallAudio(new Audio("/audios/callring2.mp3"));
       let parsedUser = JSON.parse(storedUser);
       setUser(parsedUser);
     }
@@ -74,6 +84,70 @@ function Navbar() {
   useEffect(() => {
     getNavbarLinks();
   }, []);
+
+  const receiveCall = () => {
+    // dispatch(changeRoute(window.location.pathname));
+    if (!CallAudio) return;
+    CallAudio.pause();
+    CallAudio.currentTime = 0;
+    navigate(`/vc/${NewCallId}`);
+  };
+
+  const declineCall = () => {
+    const userId = JSON.parse(localStorage.getItem("user"))._id;
+    ws.emit("declined", {
+      callId: NewCallId,
+      from: CallerData._id,
+      to: userId,
+    });
+    setNewCallId(null);
+    setCallerData(null);
+    if (!CallAudio) return;
+    CallAudio.pause();
+    CallAudio.currentTime = 0;
+  };
+
+  useEffect(() => {
+    const userId = JSON.parse(localStorage.getItem("user"))._id;
+
+    const handleCalling = async (data) => {
+      if (data.to === userId) {
+        ws.emit("ringing", data);
+
+        try {
+          const response = await axios.post(`${appServer}/api/v1/user/userId`, {
+            userId: data?.from,
+          });
+
+          setNewCallId(data.callId);
+          setCallerData(response.data);
+
+          try {
+            if (CallAudio) {
+              CallAudio.play();
+
+              setTimeout(() => {
+                setNewCallId(undefined);
+                setCallerData(undefined);
+                CallAudio.pause();
+                CallAudio.currentTime = 0;
+              }, 15000);
+            }
+          } catch (err) {
+            console.log("got error in running audio file.", err);
+          }
+        } catch (error) {
+          console.log(error);
+        }
+      }
+    };
+
+    ws.on("calling", handleCalling);
+
+    return () => {
+      ws.off("calling", handleCalling);
+    };
+  }, [CallAudio, ws]);
 
   return (
     <>
@@ -349,6 +423,29 @@ function Navbar() {
         handleClose={handleModalClose}
         handleModalShow={handleModalShow}
       />
+
+      {CallerData !== null && (
+        <div
+          className="d-flex justify-content-between px-4 py-1 position-fixed h-auto bg-info text-white"
+          style={{ top: 0, left: 0, right: 0, zIndex: 1000 }}
+        >
+          <h2 className="w-75 d-flex align-items-center">{CallerData?.name}</h2>
+          <div className="w-25 d-flex align-items-center justify-content-center">
+            <button
+              className="bg-green-600 p-md-3 p-sm-2 mx-3 rounded-full"
+              onClick={receiveCall}
+            >
+              <Call />
+            </button>
+            <button
+              className="bg-danger p-md-3 p-sm-2 mx-3 rounded-full"
+              onClick={declineCall}
+            >
+              <CallEnd />
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }

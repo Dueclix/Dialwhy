@@ -40,6 +40,7 @@ import Chat from "./pages/Chat/Chat.jsx";
 import Home from "./Components/Home.jsx";
 import Room from "./Components/Room.jsx";
 import styles from "./Admin.module.css";
+import VC from "./pages/vc/vc.jsx";
 import { useEffect } from "react";
 import "./App.css";
 
@@ -75,6 +76,7 @@ function App() {
           <Route exact path="/account" element={<MyAccount />} />
           <Route exact path="/Contacts" element={<Contacts />} />
           <Route exact path="/Chat" element={<Chat />} />
+          <Route exact path="/vc/:callId" element={<VC />} />
           <Route exact path="/room/:roomId" element={<Room />} />
           <Route exact path="/createroom" element={<CreateRoom />} />
           <Route exact path="/about" element={<About />} />

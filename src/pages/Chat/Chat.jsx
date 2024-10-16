@@ -2,8 +2,10 @@ import Navbar from "../../Components/Partials/Navbar/Navbar";
 import { Send, VideoCall } from "@mui/icons-material";
 import MessageBox from "../../Components/MessageBox";
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { appServer } from "../../utils";
 import socket from "../../utils/socket";
+import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
 import "./Chat.css";
 
@@ -17,7 +19,24 @@ const Chat = () => {
   const [EditId, setEditId] = useState("");
   const ws = socket;
 
+  const navigate = useNavigate();
+
   ws.connect();
+
+  const makeCall = () => {
+    const uuid = uuidv4().split("-").join("").slice(0, 15);
+    axios
+      .post(`${appServer}/api/v1/call/register`, {
+        receivers: CurrentChat._id,
+        callType: "single",
+        creatorId: userId,
+        callId: uuid,
+      })
+      .then(() => {
+        // dispatch(changeRoute(window.location.pathname));
+        navigate(`/vc/${uuid}`);
+      });
+  }
 
   const sendMessage = async () => {
     const currentDate = new Date();
@@ -278,7 +297,7 @@ const Chat = () => {
                     <h2 className="d-inline-block">{Friend.name}</h2>
                   </div>
                   <div>
-                    <button className="mx-4 px-2 py-1">
+                    <button className="mx-4 px-2 py-1" onClick={makeCall}>
                       <VideoCall fontSize="inherit" />
                     </button>
                   </div>
