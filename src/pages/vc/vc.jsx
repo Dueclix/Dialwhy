@@ -240,28 +240,28 @@ function VC() {
       </div>
       )}
       <div
-        style={{ zIndex: 10 }}
-        className="bg-dark position-relative w-100 h-100"
+        className="bg-dark position-relative w-100"
+        style={{ zIndex: 10, height: "100vh" }}
       >
         <video
-          ref={localVideoRef}
-          autoPlay
-          playsInline
-          muted
-          controls={false}
+          style={{ zIndex: 2, bottom: "5%", right: "5%", transform: "rotateY(180deg)" }}
+          className="w-25 h-auto position-absolute rounded"
           disablePictureInPicture
           disableRemotePlayback
-          className="w-25 h-auto position-absolute rounded"
-          style={{ zIndex: 2, bottom: "5%", right: "5%", transform: "rotateY(180deg)" }}
+          ref={localVideoRef}
+          controls={false}
+          playsInline
+          autoPlay
+          muted
         ></video>
         <video
-          ref={remoteVideoRef}
-          autoPlay
-          controls={false}
+          className="w-100 h-100 rounded"
           disablePictureInPicture
           disableRemotePlayback
-          className="w-100 h-100 rounded"
           style={{ zIndex: 1 }}
+          ref={remoteVideoRef}
+          controls={false}
+          autoPlay
         ></video>
       </div>
       <div
