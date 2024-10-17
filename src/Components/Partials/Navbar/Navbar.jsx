@@ -94,7 +94,7 @@ function Navbar() {
   };
 
   const declineCall = () => {
-    const userId = JSON.parse(localStorage.getItem("user"))._id;
+    const userId = JSON.parse(localStorage.getItem("user"))?._id;
     ws.emit("declined", {
       callId: NewCallId,
       from: CallerData._id,
@@ -108,7 +108,7 @@ function Navbar() {
   };
 
   useEffect(() => {
-    const userId = JSON.parse(localStorage.getItem("user"))._id;
+    const userId = JSON.parse(localStorage.getItem("user"))?._id;
 
     const handleCalling = async (data) => {
       if (data.to === userId) {
