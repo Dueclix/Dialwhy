@@ -36,7 +36,7 @@ const Chat = () => {
         // dispatch(changeRoute(window.location.pathname));
         navigate(`/vc/${uuid}`);
       });
-  }
+  };
 
   const sendMessage = async () => {
     const currentDate = new Date();
@@ -112,6 +112,45 @@ const Chat = () => {
         setEditId("");
         setEditValue("");
       }
+    }
+  };
+
+  const downloadRecording = async (filePath) => {
+    try {
+      const response = await axios.get(`${appServer}/recording/${filePath}`, {
+        responseType: "blob",
+      });
+
+      const blob = new Blob([response.data], {
+        type: response.headers["content-type"],
+      });
+
+      const link = document.createElement("a");
+      link.href = window.URL.createObjectURL(blob);
+      link.download = filePath;
+
+      document.body.appendChild(link);
+      link.click();
+
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(link.href);
+    } catch (error) {
+      console.error("Error downloading the file:", error);
+    }
+  };
+
+  const deleteRecording = async (filename) => {
+    await axios.post(`${appServer}/recording/delete/`, { filename: filename });
+
+    const deleteMessage = MessagesList.find(
+      (message) => message.type === "recording" && message.filePath === filename
+    );
+
+    if (deleteMessage) {
+      setMessagesList((prev) => [
+        ...prev.filter((message) => message._id !== deleteMessage._id),
+      ]);
+      ws.emit("recording-delete", { filename });
     }
   };
 
@@ -234,17 +273,32 @@ const Chat = () => {
       });
     };
 
+    const recordingDeleteHandle = ({ filename }) => {
+      const deleteMessage = MessagesList.find(
+        (message) =>
+          message.type === "recording" && message.filePath === filename
+      );
+
+      if (deleteMessage) {
+        setMessagesList((prev) => [
+          ...prev.filter((message) => message._id !== deleteMessage._id),
+        ]);
+      }
+    };
+
     ws.on("message-read", messageStatusHandle);
     ws.on("one-to-one-delete", OneToOneDelete);
     ws.on("one-to-one-edited", OneToOneEdited);
     ws.on("one-to-one-message", OneToOneMessage);
+    ws.on("recording-delete", recordingDeleteHandle);
     return () => {
       ws.off("message-read", messageStatusHandle);
       ws.off("one-to-one-delete", OneToOneDelete);
       ws.off("one-to-one-edited", OneToOneEdited);
       ws.off("one-to-one-message", OneToOneMessage);
+      ws.off("recording-delete", recordingDeleteHandle);
     };
-  }, [userId, ws]);
+  }, [MessagesList, userId, ws]);
 
   return (
     <div className="h-100">
@@ -303,18 +357,64 @@ const Chat = () => {
                   </div>
                 </div>
                 <div className="chatbox-body w-100 h-100">
-                  {MessagesList.map((Message) => (
-                    <MessageBox
-                      CurrentChat={CurrentChat}
-                      key={Message._id}
-                      Message={Message}
-                      userId={userId}
-                      onEdit={() => setEditId(Message._id)}
-                      onDelete={() => {
-                        deleteMessage(Message._id);
-                      }}
-                    />
-                  ))}
+                  {MessagesList.map((Message) => {
+                    const isSender = Message.senderId === userId ? false : true;
+
+                    return Message.type === "message" ? (
+                      <MessageBox
+                        CurrentChat={CurrentChat}
+                        key={Message._id}
+                        Message={Message}
+                        userId={userId}
+                        onEdit={() => setEditId(Message._id)}
+                        onDelete={() => {
+                          deleteMessage(Message._id);
+                        }}
+                      />
+                    ) : (
+                      Message.type === "recording" && (
+                        <div
+                          key={Message._id}
+                          className={`d-flex align-items-center ${
+                            isSender
+                              ? "justify-content-start"
+                              : "justify-content-end"
+                          } px-3`}
+                        >
+                          <div
+                            className="position-relative my-2 rounded px-2 pt-2 bg-white"
+                            style={{ maxWidth: "250px" }}
+                          >
+                            <p className="bg-light text-dark rounded p-2 text-ellipsis overflow-hidden whitespace-nowrap">
+                              {Message.filePath}
+                            </p>
+                            <div className="d-flex justify-content-start align-items-center pt-1">
+                              <button
+                                className="bg-info text-light px-3 py-2 ml-0 mr-2 rounded"
+                                onClick={() =>
+                                  Message.filePath &&
+                                  downloadRecording(Message.filePath)
+                                }
+                              >
+                                Download
+                              </button>
+                              {Message.senderId === userId && (
+                                <button
+                                  className="bg-info text-light px-3 py-2 rounded"
+                                  onClick={() =>
+                                    Message.filePath &&
+                                    deleteRecording(Message.filePath)
+                                  }
+                                >
+                                  Delete
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    );
+                  })}
                 </div>
                 <div className="chatbox-footer d-flex justify-content-center align-items-center w-100 py-3">
                   <input
