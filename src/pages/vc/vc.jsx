@@ -34,6 +34,7 @@ function VC() {
   const [CurrentChat, setCurrentChat] = useState(null);
   const [RemoteVideo, setRemoteVideo] = useState(true);
   const [RemoteAudio, setRemoteAudio] = useState(true);
+  const [PeerStream, setPeerStream] = useState(null);
   const [AudioChunks, setAudioChunks] = useState([]);
   const [RecordedBy, setRecordedBy] = useState(null);
   const [MicEnable, setMicEnable] = useState(true);
@@ -113,6 +114,7 @@ function VC() {
   const toggleCamera = async () => {
     const newState = !CameraEnable;
     const localStream = LocalStream;
+    const peerStream = PeerStream;
 
     if (newState) {
       const constraints = await getConstraints();
@@ -121,9 +123,13 @@ function VC() {
         localStream
           .getVideoTracks()
           .forEach((track) => localStream.removeTrack(track));
+        peerStream
+          .getVideoTracks()
+          .forEach((track) => peerStream.removeTrack(track));
 
         videoStream.getVideoTracks().forEach((track) => {
           localStream.addTrack(track);
+          peerStream.addTrack(track);
           if (peerConnection?.signalingState !== "closed") {
             peerConnection?.getSenders().forEach((sender) => {
               if (sender.track?.kind === "video") {
@@ -149,8 +155,12 @@ function VC() {
       localStream.getVideoTracks().forEach((track) => {
         localStream.removeTrack(track);
       });
+      peerStream.getVideoTracks().forEach((track) => {
+        peerStream.removeTrack(track);
+      });
 
       localStream.addTrack(blackVideoTrack);
+      peerStream.addTrack(blackVideoTrack);
       if (peerConnection?.signalingState !== "closed") {
         peerConnection?.getSenders().forEach((sender) => {
           if (sender.track?.kind === "video") {
@@ -167,11 +177,12 @@ function VC() {
       type: "audio",
     });
     setLocalStream(localStream);
+    setPeerStream(peerStream);
     setCameraEnable(newState);
   };
 
   const toggleMic = async () => {
-    const localStream = LocalStream;
+    const peerStream = PeerStream;
     const newState = !MicEnable;
 
     if (newState) {
@@ -179,12 +190,12 @@ function VC() {
       const audioStream = await getMediaStream(constraints.audio, "audio");
 
       if (audioStream instanceof MediaStream) {
-        localStream.getAudioTracks().forEach((track) => {
-          localStream.removeTrack(track);
+        peerStream.getAudioTracks().forEach((track) => {
+          peerStream.removeTrack(track);
         });
 
         audioStream.getAudioTracks().forEach((track) => {
-          localStream.addTrack(track);
+          peerStream.addTrack(track);
           if (peerConnection && peerConnection.signalingState !== "closed") {
             peerConnection
               .getSenders()
@@ -194,12 +205,12 @@ function VC() {
         });
       }
     } else {
-      localStream
+      peerStream
         .getAudioTracks()
-        .forEach((track) => localStream.removeTrack(track));
+        .forEach((track) => peerStream.removeTrack(track));
 
       const silentAudioTrack = createSilentAudioStream().getAudioTracks()[0];
-      localStream.addTrack(silentAudioTrack);
+      peerStream.addTrack(silentAudioTrack);
       if (peerConnection && peerConnection.signalingState !== "closed") {
         peerConnection
           .getSenders()
@@ -214,12 +225,13 @@ function VC() {
       userId: userId,
       type: "audio",
     });
-    setLocalStream(localStream);
+    setPeerStream(peerStream);
     setMicEnable(newState);
   };
 
   const restartStream = async () => {
     const prevLocalStream = LocalStream;
+    const prevPeerStream = PeerStream;
 
     if (CameraEnable) {
       const constraints = await getConstraints();
@@ -230,8 +242,14 @@ function VC() {
           track.stop();
           prevLocalStream.removeTrack(track);
         });
+        prevPeerStream.getVideoTracks().forEach((track) => {
+          track.stop();
+          prevPeerStream.removeTrack(track);
+        });
+
         videoStream.getVideoTracks().forEach((track) => {
           prevLocalStream?.addTrack(track);
+          prevPeerStream?.addTrack(track);
           if (peerConnection?.signalingState !== "closed") {
             peerConnection?.getSenders().forEach((sender) => {
               if (sender.track?.kind !== "audio") {
@@ -255,6 +273,7 @@ function VC() {
       const blackVideoTrack = blackStream.getVideoTracks()[0];
 
       prevLocalStream?.addTrack(blackVideoTrack);
+      prevPeerStream?.addTrack(blackVideoTrack);
       if (peerConnection?.signalingState !== "closed") {
         peerConnection?.getSenders().forEach((sender) => {
           if (sender.track?.kind !== "audio") {
@@ -264,6 +283,7 @@ function VC() {
       }
     }
     setLocalStream(prevLocalStream);
+    setPeerStream(prevPeerStream);
   };
 
   const screenShare = async () => {
@@ -272,12 +292,17 @@ function VC() {
         .getDisplayMedia({ video: true, audio: false })
         .then((stream) => {
           const prevLocalStream = LocalStream;
+          const prevPeerStream = PeerStream;
           prevLocalStream
             ?.getVideoTracks()
             .map((track) => prevLocalStream.removeTrack(track));
+          prevPeerStream
+            ?.getVideoTracks()
+            .map((track) => prevPeerStream.removeTrack(track));
 
           stream.getVideoTracks().forEach((track) => {
             prevLocalStream?.addTrack(track);
+            prevPeerStream?.addTrack(track);
             if (peerConnection?.signalingState !== "closed") {
               peerConnection?.getSenders().forEach((sender) => {
                 if (sender.track?.kind !== "audio") {
@@ -292,6 +317,7 @@ function VC() {
           });
 
           setLocalStream(prevLocalStream);
+          setPeerStream(prevPeerStream);
           if (!CameraEnable) {
             socket.emit("change-event", {
               state: true,
@@ -502,30 +528,33 @@ function VC() {
       setCurrentChat(response.data);
 
       const constraints = await getConstraints();
-      const mediaStream = new MediaStream();
+      const localStream = new MediaStream();
+      const peerStream = new MediaStream();
 
       const audioStream = await getMediaStream(constraints.audio, "audio");
       const videoStream = await getMediaStream(constraints.video, "video");
 
       if (audioStream instanceof MediaStream) {
-        audioStream.getTracks().map((track) => mediaStream.addTrack(track));
+        audioStream.getTracks().map((track) => peerStream.addTrack(track));
         setMicEnable(true);
       } else {
         setMicEnable(false);
       }
 
       if (videoStream instanceof MediaStream) {
-        videoStream.getTracks().map((track) => mediaStream.addTrack(track));
+        videoStream.getTracks().map((track) => peerStream.addTrack(track));
+        videoStream.getTracks().map((track) => localStream.addTrack(track));
         setCameraEnable(true);
       } else {
         setCameraEnable(false);
       }
 
-      setLocalStream(mediaStream);
+      setLocalStream(localStream);
+      setPeerStream(peerStream);
 
-      mediaStream
+      peerStream
         .getTracks()
-        .forEach((track) => peerConnection.addTrack(track, mediaStream));
+        .forEach((track) => peerConnection.addTrack(track, peerStream));
 
       if (callData.receivers === userId) {
         ws.emit("accepting", {
@@ -569,7 +598,7 @@ function VC() {
       let videoChunks = [];
 
       const loadRecorder = async () => {
-        if (!LocalStream || !RemoteStream) return;
+        if (!PeerStream || !RemoteStream) return;
 
         const canvas = RecorderCanvas || document.createElement("canvas");
         !RecorderCanvas && setRecorderCanvas(canvas);
@@ -579,12 +608,12 @@ function VC() {
         const CombinedContext = audioContext || new AudioContext();
         !audioContext && setAudioContext(CombinedContext);
 
-        const peerAudio = LocalStream.getAudioTracks().length;
+        const peerAudio = PeerStream.getAudioTracks().length;
         const remoteAudio = RemoteStream.getAudioTracks().length;
 
         if (peerAudio > 0 && remoteAudio > 0) {
           const peerSource =
-            CombinedContext.createMediaStreamSource(LocalStream);
+            CombinedContext.createMediaStreamSource(PeerStream);
           const remoteSource =
             CombinedContext.createMediaStreamSource(RemoteStream);
 
@@ -630,7 +659,7 @@ function VC() {
         !mediaRecorder && setMediaRecorder(canvasRecorder);
 
         const localVideo = document.createElement("video");
-        localVideo.srcObject = LocalStream;
+        localVideo.srcObject = PeerStream;
         localVideo.autoplay = true;
 
         const remoteVideo = document.createElement("video");
@@ -824,7 +853,7 @@ function VC() {
   }, [
     callId,
     MicEnable,
-    LocalStream,
+    PeerStream,
     RemoteStream,
     audioContext,
     setAudioContext,
