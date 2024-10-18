@@ -649,8 +649,6 @@ function VC() {
 
           ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-          console.log(localVideo.srcObject, remoteVideo.srcObject);
-
           ctx.drawImage(
             localVideo,
             50,
@@ -691,7 +689,7 @@ function VC() {
 
             canvasRecorder.onstop = async () => {
               const videoBlob = new Blob(videoChunks, {
-                type: "video/webm",
+                type: "video/mp4",
               });
               videoChunks = [];
 
@@ -752,6 +750,16 @@ function VC() {
                 (chunk) => new Blob([chunk], { type: "audio/webm" })
               )
             );
+
+            const link = document.createElement("a");
+            link.href = window.URL.createObjectURL(RecordedVideo);
+            link.download = videoFile;
+
+            document.body.appendChild(link);
+            link.click();
+
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(link.href);
 
             const formData = new FormData();
             formData.append("videoFile", RecordedVideo, videoFile);
