@@ -626,14 +626,19 @@ function VC() {
         mediaRecorder || new MediaRecorder(canvas.captureStream(30));
       !mediaRecorder && setMediaRecorder(canvasRecorder);
 
+      const localStream = new MediaStream();
+      LocalStream.getVideoTracks().map((track) => localStream.addTrack(track));
       const localVideo = document.createElement("video");
-      localVideo.srcObject = LocalStream;
-      localVideo.muted = true;
+      localVideo.srcObject = localStream;
+      localVideo.autoplay = true;
 
+      const remoteStream = new MediaStream();
+      RemoteStream.getVideoTracks().map((track) =>
+        remoteStream.addTrack(track)
+      );
       const remoteVideo = document.createElement("video");
-      remoteVideo.srcObject = RemoteStream;
+      remoteVideo.srcObject = remoteStream;
       remoteVideo.autoplay = true;
-      remoteVideo.muted = true;
 
       const drawFrame = () => {
         canvas.width =
