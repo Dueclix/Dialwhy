@@ -55,7 +55,7 @@ function VC() {
           ?.deviceId,
         width: { min: 640, ideal: 1920, max: 1920 },
         height: { min: 400, ideal: 1080 },
-        facingMode: { exact: "user" },
+        // facingMode: { exact: "user" },
       },
       audio: {
         deviceId: devices.filter((device) => device.kind === "audioinput")[0]
@@ -88,6 +88,7 @@ function VC() {
 
     try {
       const newStream = await navigator.mediaDevices.getUserMedia(constraints);
+      type === "video" && console.log(newStream);
       return newStream;
     } catch (err) {
       return Error("an Error Occurred");
