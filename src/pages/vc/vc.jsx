@@ -877,8 +877,7 @@ function VC() {
       const remoteAudio = RemoteStream.getAudioTracks().length;
 
       if (localAudio > 0 && remoteAudio > 0) {
-        const localSource =
-          CombinedContext.createMediaStreamSource(LocalStream);
+        const localSource = CombinedContext.createMediaStreamSource(LocalStream);
         const remoteSource =
           CombinedContext.createMediaStreamSource(RemoteStream);
 
@@ -1062,7 +1061,7 @@ function VC() {
           setRecordedVideo(null);
 
           await axios
-            .post(`${appServer}/uploads/`, formData, {
+            .post(`${process.env.NEXT_PUBLIC_SERVER_PATH}/uploads/`, formData, {
               headers: {
                 "Content-Type": "multipart/form-data",
               },
@@ -1111,6 +1110,7 @@ function VC() {
     };
 
     loadRecorder();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     callId,
     MicEnable,
@@ -1128,18 +1128,16 @@ function VC() {
     setMediaRecorder,
     AudioRecorder,
     setAudioRecorder,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    LocalStream?.getAudioTracks(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    RemoteStream?.getAudioTracks(),
     RecorderAudio,
     setRecorderAudio,
     RecordedVideo,
     setRecordedVideo,
     AudioChunks,
     setAudioChunks,
-    userName,
-    CurrentChat?.name,
-    CurrentChat?._id,
-    RecordedBy,
-    userId,
-    ws,
   ]);
 
   return (
