@@ -629,12 +629,14 @@ function VC() {
         !mediaRecorder && setMediaRecorder(canvasRecorder);
 
         const localVideo = document.createElement("video");
-        localVideo.srcObject = new MediaStream(LocalStream.getVideoTracks());
+        localVideo.srcObject = LocalStream;
         localVideo.autoplay = true;
+        localVideo.muted = true;
         
         const remoteVideo = document.createElement("video");
-        remoteVideo.srcObject = new MediaStream(RemoteStream.getVideoTracks());
+        remoteVideo.srcObject = RemoteStream;
         remoteVideo.autoplay = true;
+        remoteVideo.muted = true;
 
         const drawFrame = () => {
           canvas.width =
@@ -646,6 +648,8 @@ function VC() {
             ) + 100;
 
           ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          console.log(localVideo.srcObject, remoteVideo.srcObject);
 
           ctx.drawImage(
             localVideo,
