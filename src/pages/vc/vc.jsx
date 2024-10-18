@@ -418,8 +418,7 @@ function VC() {
       if (data.callId === callId && data.from === userId) {
         setCallStatus("Call Declined.");
         CallAudio && CallAudio.pause();
-        // window.location.replace("/");
-        console.log("Issue is occuring at call declined.");
+        window.location.replace("/");
         // window.location.replace(prevRoute ? prevRoute : "/");
       }
     };
@@ -429,8 +428,7 @@ function VC() {
         setCallStatus(`User is busy.`);
         CallAudio && CallAudio.pause();
         setTimeout(() => {
-          // window.location.replace("/");
-          console.log("Issue is occuring at user busy.");
+          window.location.replace("/");
           //   window.location.replace(prevRoute ? prevRoute : "/");
         }, 3000);
       }
