@@ -924,12 +924,12 @@ function VC() {
       const localVideo = document.createElement("video");
       localVideo.srcObject = LocalStream;
       localVideo.autoplay = true;
-      localVideo.muted = true;
+      // localVideo.muted = true;
 
       const remoteVideo = document.createElement("video");
       remoteVideo.srcObject = RemoteStream;
       remoteVideo.autoplay = true;
-      remoteVideo.muted = true;
+      // remoteVideo.muted = true;
 
       const drawFrame = () => {
         canvas.width =
