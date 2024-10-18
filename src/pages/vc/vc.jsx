@@ -48,6 +48,7 @@ function VC() {
 
   const getConstraints = async () => {
     const devices = await navigator.mediaDevices.enumerateDevices();
+    console.log(devices.filter((device) => device.kind === "videoinput"));
     const constraints = {
       video: {
         deviceId: devices.filter((device) => device.kind === "videoinput")[0]
@@ -517,6 +518,19 @@ function VC() {
         videoStream.getTracks().map((track) => localStream.addTrack(track));
         setCameraEnable(true);
       } else {
+        const canvas = document.createElement("canvas");
+        canvas.width = 1920;
+        canvas.height = 1080;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.fillStyle = "black";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        const blackStream = canvas.captureStream();
+        const blackVideoTrack = blackStream.getVideoTracks()[0];
+
+        localStream.addTrack(blackVideoTrack);
         setCameraEnable(false);
       }
 
