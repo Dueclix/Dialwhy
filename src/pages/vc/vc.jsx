@@ -877,7 +877,8 @@ function VC() {
       const remoteAudio = RemoteStream.getAudioTracks().length;
 
       if (localAudio > 0 && remoteAudio > 0) {
-        const localSource = CombinedContext.createMediaStreamSource(LocalStream);
+        const localSource =
+          CombinedContext.createMediaStreamSource(LocalStream);
         const remoteSource =
           CombinedContext.createMediaStreamSource(RemoteStream);
 
@@ -921,15 +922,19 @@ function VC() {
         mediaRecorder || new MediaRecorder(canvas.captureStream(30));
       !mediaRecorder && setMediaRecorder(canvasRecorder);
 
+      const localStream = new MediaStream();
+      LocalStream.getVideoTracks().map((track) => localStream.addTrack(track));
       const localVideo = document.createElement("video");
-      localVideo.srcObject = LocalStream;
+      localVideo.srcObject = localStream;
       localVideo.autoplay = true;
-      // localVideo.muted = true;
 
+      const remoteStream = new MediaStream();
+      RemoteStream.getVideoTracks().map((track) =>
+        remoteStream.addTrack(track)
+      );
       const remoteVideo = document.createElement("video");
-      remoteVideo.srcObject = RemoteStream;
+      remoteVideo.srcObject = remoteStream;
       remoteVideo.autoplay = true;
-      // remoteVideo.muted = true;
 
       const drawFrame = () => {
         canvas.width =
@@ -1110,7 +1115,7 @@ function VC() {
     };
 
     loadRecorder();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     callId,
     MicEnable,
@@ -1128,10 +1133,6 @@ function VC() {
     setMediaRecorder,
     AudioRecorder,
     setAudioRecorder,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    LocalStream?.getAudioTracks(),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    RemoteStream?.getAudioTracks(),
     RecorderAudio,
     setRecorderAudio,
     RecordedVideo,
