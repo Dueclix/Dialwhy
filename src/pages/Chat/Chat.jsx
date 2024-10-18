@@ -372,47 +372,51 @@ const Chat = () => {
                         }}
                       />
                     ) : (
-                      Message.type === "recording" && (
-                        <div
-                          key={Message._id}
-                          className={`d-flex align-items-center ${
-                            isSender
-                              ? "justify-content-start"
-                              : "justify-content-end"
-                          } px-3`}
-                        >
+                      ((Message.senderId === userId &&
+                        Message.receiverId === CurrentChat._id) ||
+                        (Message.senderId === CurrentChat._id &&
+                          Message.receiverId === userId)) &&
+                        Message.type === "recording" && (
                           <div
-                            className="position-relative my-2 rounded px-2 pt-2 bg-white"
-                            style={{ maxWidth: "250px" }}
+                            key={Message._id}
+                            className={`d-flex align-items-center ${
+                              isSender
+                                ? "justify-content-start"
+                                : "justify-content-end"
+                            } px-3`}
                           >
-                            <p className="bg-light text-dark rounded p-2 text-ellipsis overflow-hidden whitespace-nowrap">
-                              {Message.filePath}
-                            </p>
-                            <div className="d-flex justify-content-start align-items-center pt-1">
-                              <button
-                                className="bg-info text-light px-3 py-2 ml-0 mr-2 rounded"
-                                onClick={() =>
-                                  Message.filePath &&
-                                  downloadRecording(Message.filePath)
-                                }
-                              >
-                                Download
-                              </button>
-                              {Message.senderId === userId && (
+                            <div
+                              className="position-relative my-2 rounded px-2 pt-2 bg-white"
+                              style={{ maxWidth: "250px" }}
+                            >
+                              <p className="bg-light text-dark rounded p-2 text-ellipsis overflow-hidden whitespace-nowrap">
+                                {Message.filePath}
+                              </p>
+                              <div className="d-flex justify-content-start align-items-center pt-1">
                                 <button
-                                  className="bg-info text-light px-3 py-2 rounded"
+                                  className="bg-info text-light px-3 py-2 ml-0 mr-2 rounded"
                                   onClick={() =>
                                     Message.filePath &&
-                                    deleteRecording(Message.filePath)
+                                    downloadRecording(Message.filePath)
                                   }
                                 >
-                                  Delete
+                                  Download
                                 </button>
-                              )}
+                                {Message.senderId === userId && (
+                                  <button
+                                    className="bg-info text-light px-3 py-2 rounded"
+                                    onClick={() =>
+                                      Message.filePath &&
+                                      deleteRecording(Message.filePath)
+                                    }
+                                  >
+                                    Delete
+                                  </button>
+                                )}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      )
+                        )
                     );
                   })}
                 </div>
