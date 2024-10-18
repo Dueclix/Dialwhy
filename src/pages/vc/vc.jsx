@@ -1062,7 +1062,7 @@ function VC() {
           setRecordedVideo(null);
 
           await axios
-            .post(`${process.env.NEXT_PUBLIC_SERVER_PATH}/uploads/`, formData, {
+            .post(`${appServer}/uploads/`, formData, {
               headers: {
                 "Content-Type": "multipart/form-data",
               },
