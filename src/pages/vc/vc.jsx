@@ -11,14 +11,17 @@ import {
   Mic,
   Send,
 } from "@mui/icons-material";
+import sendNotification from "../../utils/sendNotifications";
 import React, { useEffect, useRef, useState } from "react";
+import MessageBox from "../../Components/MessageBox";
 import { useParams } from "react-router-dom";
 import { appServer } from "../../utils";
 import socket from "../../utils/socket";
 import axios from "axios";
-import MessageBox from "../../Components/MessageBox";
 
 function VC() {
+  const userImage =
+    JSON.parse(localStorage.getItem("user"))?.image.url || "/Profile.png";
   const userName = JSON.parse(localStorage.getItem("user")).name;
   const [IsCallRecording, setIsCallRecording] = useState(false);
   const userId = JSON.parse(localStorage.getItem("user"))._id;
@@ -336,12 +339,24 @@ function VC() {
       }),
       seen: false,
     };
-    axios
+
+    const notify = {
+      _id: CurrentChat._id,
+      title: `New Message From ${userName}`,
+      type: "one-to-one-message",
+      body: Message,
+      icon: userImage,
+      badge: userImage,
+    };
+
+    await axios
       .post(`${appServer}/api/v1/message/one-to-one/send`, data)
       .then((res) => {
         ws.emit("one-to-one-message", { _id: res.data, ...data });
         setMessage("");
       });
+
+    sendNotification(notify);
   };
 
   const deleteMessage = async (messageId) => {
@@ -679,17 +694,26 @@ function VC() {
           type: callData.type,
         });
       } else if (callData.creatorId === userId) {
+        const notify = {
+          _id: callData.receivers,
+          title: `${userName} Calling...`,
+          body: window.location.origin + "/vc/" + callId + "/",
+          type: "one-to-one-call",
+          icon: userImage,
+          badge: userImage,
+        };
         ws.emit("calling", {
           callId,
           from: userId,
           to: callData.receivers,
           type: callData.type,
         });
+        sendNotification(notify);
       }
     };
 
     startCall();
-  }, [LocalStream, callId, peerConnection, userId, ws]);
+  }, [LocalStream, callId, peerConnection, userId, userImage, userName, ws]);
 
   useEffect(() => {
     if (LocalStream && localVideoRef.current) {

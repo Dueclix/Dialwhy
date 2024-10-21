@@ -1,3 +1,4 @@
+import sendNotification from "../../utils/sendNotifications";
 import Navbar from "../../Components/Partials/Navbar/Navbar";
 import { Send, VideoCall } from "@mui/icons-material";
 import MessageBox from "../../Components/MessageBox";
@@ -10,6 +11,8 @@ import axios from "axios";
 import "./Chat.css";
 
 const Chat = () => {
+  const userImage = JSON.parse(localStorage.getItem("user"))?.image?.url || "/Profile.png";
+  const userName = JSON.parse(localStorage.getItem("user")).name;
   const userId = JSON.parse(localStorage.getItem("user"))._id;
   const [MessagesList, setMessagesList] = useState([]);
   const [CurrentChat, setCurrentChat] = useState(null);
@@ -51,12 +54,24 @@ const Chat = () => {
       }),
       seen: false,
     };
-    axios
+
+    const notify = {
+      _id: CurrentChat._id,
+      title: `New Message From ${userName}`,
+      type: "one-to-one-message",
+      body: Message,
+      icon: userImage,
+      badge: userImage,
+    };
+
+    await axios
       .post(`${appServer}/api/v1/message/one-to-one/send`, data)
       .then((res) => {
         ws.emit("one-to-one-message", { _id: res.data, ...data });
         setMessage("");
       });
+
+    sendNotification(notify);
   };
 
   const deleteMessage = async (messageId) => {

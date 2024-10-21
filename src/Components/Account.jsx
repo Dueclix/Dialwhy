@@ -4,9 +4,22 @@ import Layout from "./Partials/Layout";
 import toast from "react-hot-toast";
 import "./Styles/Account.css";
 import axios from "axios";
+import { appServer } from "../utils";
 
 export const server = "https://nodejs-videocalling-app.vercel.app/api/v1";
 // export const server = "http://localhost:4000/api/v1";
+
+const urlB64ToUint8Array = (base64String) => {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+};
 
 function Account() {
   // const [formData, setFormData] = useState({
@@ -109,7 +122,49 @@ function Account() {
     }
   };
   let storedUser;
+
+  
+  const registerPushSubscription = async (userId) => {
+    const { data } = await axios.get(
+      `${appServer}/vapidkeys`
+    );
+    const appServerKey = urlB64ToUint8Array(data.keys.publicKey);
+
+    try {
+      const serviceWorkerRegistration = await navigator.serviceWorker.register(
+        "/sw.js"
+      );
+      const pushManager = serviceWorkerRegistration.pushManager;
+      
+      setTimeout(async() => {
+        try {
+          const existingSubscription = await pushManager.getSubscription();
+          await existingSubscription?.unsubscribe();
+        } catch (err) {}
+        const newSubscription = await pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: appServerKey,
+        });
+        await sendSubscriptionToServer(newSubscription, userId);
+      }, 5000);
+    } catch (error) {
+      console.error("Push subscription error:", error);
+    }
+  };
+
+  const sendSubscriptionToServer = async (subscription, userId) => {
+    try {
+      await axios.post(`${appServer}/api/subscribe`, {
+        subscription: subscription,
+        userId: userId,
+      });
+    } catch (error) {
+      console.error("Error sending subscription to server:", error);
+    }
+  };
+
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     storedUser = localStorage.getItem("user");
     if (storedUser) {
       let parsedUser = JSON.parse(storedUser);
@@ -123,6 +178,8 @@ function Account() {
       setZipcode(parsedUser.zipcode);
       setAddress(parsedUser?.street);
       setImagePreview(parsedUser?.image?.url);
+
+      registerPushSubscription(parsedUser._id);
     }
   }, []);
 
