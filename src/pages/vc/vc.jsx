@@ -4,15 +4,19 @@ import {
   VideocamOffOutlined,
   RadioButtonChecked,
   VideocamOutlined,
+  ChevronRight,
+  ChevronLeft,
   CallEnd,
   MicOff,
   Mic,
+  Send,
 } from "@mui/icons-material";
 import React, { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { appServer } from "../../utils";
 import socket from "../../utils/socket";
 import axios from "axios";
+import MessageBox from "../../Components/MessageBox";
 
 function VC() {
   const userName = JSON.parse(localStorage.getItem("user")).name;
@@ -30,15 +34,20 @@ function VC() {
   const [CameraEnable, setCameraEnable] = useState(true);
   const [RemoteStream, setRemoteStream] = useState(null);
   const [IsRecording, setIsRecording] = useState(false);
+  const [MessagesList, setMessagesList] = useState([]);
   const [LocalStream, setLocalStream] = useState(null);
   const [CurrentChat, setCurrentChat] = useState(null);
   const [RemoteVideo, setRemoteVideo] = useState(true);
   const [RemoteAudio, setRemoteAudio] = useState(true);
+  const [ToggleChat, setToggleChat] = useState("-22%");
   const [AudioChunks, setAudioChunks] = useState([]);
   const [RecordedBy, setRecordedBy] = useState(null);
   const [MicEnable, setMicEnable] = useState(true);
   const [CallStatus, setCallStatus] = useState("");
   const [CallAudio, setCallAudio] = useState(null);
+  const [EditValue, setEditValue] = useState("");
+  const [Message, setMessage] = useState("");
+  const [EditId, setEditId] = useState("");
   const remoteVideoRef = useRef();
   const localVideoRef = useRef();
   const { callId } = useParams();
@@ -312,6 +321,122 @@ function VC() {
 
   const endCall = async () => {
     window.location.replace("/");
+  };
+
+  const sendMessage = async () => {
+    const currentDate = new Date();
+    const data = {
+      senderId: userId,
+      receiverId: CurrentChat._id,
+      message: Message,
+      timming: currentDate.toLocaleTimeString([], {
+        hour12: true,
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      seen: false,
+    };
+    axios
+      .post(`${appServer}/api/v1/message/one-to-one/send`, data)
+      .then((res) => {
+        ws.emit("one-to-one-message", { _id: res.data, ...data });
+        setMessage("");
+      });
+  };
+
+  const deleteMessage = async (messageId) => {
+    try {
+      const result = await axios.post(
+        `${appServer}/api/v1/message/one-to-one/delete/`,
+        { messageId }
+      );
+
+      if (result.status === 200) {
+        setMessagesList((prevMessagesList) =>
+          prevMessagesList.filter((message) => message._id !== messageId)
+        );
+        socket.emit("one-to-one-delete", { messageId: messageId });
+      } else {
+        console.error("Failed to delete message:", result.statusText);
+      }
+    } catch (error) {
+      console.error("Error deleting message:", error);
+    }
+  };
+
+  const CencelEditedMessage = () => {
+    setEditId("");
+    setEditValue("");
+  };
+
+  const sendEditMessage = async () => {
+    if (EditId.trim() !== "" && EditValue.trim() !== "") {
+      const result = await axios.post(
+        `${appServer}/api/v1/message/one-to-one/edit`,
+        { messageId: EditId, updatedMessage: EditValue }
+      );
+
+      if (result.status === 200) {
+        const index = MessagesList.findIndex(
+          (message) => message._id === EditId
+        );
+
+        if (index === -1) return;
+
+        setMessagesList((prevMessages) => [
+          ...prevMessages.slice(0, index),
+          { ...prevMessages[index], message: EditValue },
+          ...prevMessages.slice(index + 1),
+        ]);
+
+        socket.emit("one-to-one-edited", {
+          messageId: EditId,
+          updatedMessage: EditValue,
+        });
+
+        setEditId("");
+        setEditValue("");
+      }
+    }
+  };
+
+  const downloadRecording = async (filePath) => {
+    try {
+      const response = await axios.get(`${appServer}/recording/${filePath}`, {
+        responseType: "blob",
+      });
+
+      const blob = new Blob([response.data], {
+        type: response.headers["content-type"],
+      });
+
+      const link = document.createElement("a");
+      link.href = window.URL.createObjectURL(blob);
+      link.download = filePath;
+
+      document.body.appendChild(link);
+      link.click();
+
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(link.href);
+    } catch (error) {
+      console.error("Error downloading the file:", error);
+    }
+  };
+
+  const deleteRecording = async (filename) => {
+    await axios.post(`${appServer}/recording/delete/`, { filename: filename });
+
+    const deleteMessage = MessagesList.find(
+      (message) => message.type === "recording" && message.filePath === filename
+    );
+
+    if (deleteMessage) {
+      setMessagesList((prev) => [
+        ...prev.filter((message) => message._id !== deleteMessage._id),
+      ]);
+      ws.emit("recording-delete", { filename });
+    }
   };
 
   useEffect(() => {
@@ -791,35 +916,35 @@ function VC() {
               setUpdatesMessage(res.data.message);
               setTimeout(() => setUpdatesMessage(null), 5000);
 
-              // let addedRecording = false;
-              // const newMessage = {
-              //   _id: res.data.recordingId,
-              //   senderId: userId,
-              //   receiverId: CurrentChat._id,
-              //   filePath: videoFile.replace("video-", ""),
-              //   timming: currentDate.toLocaleTimeString([], {
-              //     hour12: true,
-              //     hour: "2-digit",
-              //     minute: "2-digit",
-              //   }),
-              //   seen: true,
-              //   type: "recording",
-              // };
+              let addedRecording = false;
+              const newMessage = {
+                _id: res.data.recordingId,
+                senderId: userId,
+                receiverId: CurrentChat._id,
+                filePath: videoFile.replace("video-", ""),
+                timming: currentDate.toLocaleTimeString([], {
+                  hour12: true,
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }),
+                seen: true,
+                type: "recording",
+              };
 
-              // setMessagesList((prevMessages) => {
-              //   const recordingExist = prevMessages.some(
-              //     (message) => message._id === newMessage._id
-              //   );
+              setMessagesList((prevMessages) => {
+                const recordingExist = prevMessages.some(
+                  (message) => message._id === newMessage._id
+                );
 
-              //   if (!recordingExist && !addedRecording) {
-              //     addedRecording = true;
-              //     return [...prevMessages, newMessage];
-              //   }
+                if (!recordingExist && !addedRecording) {
+                  addedRecording = true;
+                  return [...prevMessages, newMessage];
+                }
 
-              //   return prevMessages;
-              // });
+                return prevMessages;
+              });
 
-              // ws.emit("recording-save", newMessage);
+              ws.emit("recording-save", newMessage);
             })
             .catch((err) => console.log(err));
         }
@@ -857,6 +982,131 @@ function VC() {
     setAudioChunks,
   ]);
 
+  useEffect(() => {
+    const getMessages = async () => {
+      try {
+        if (CurrentChat?._id) {
+          const result = await axios.get(
+            `${appServer}/api/v1/messages/one-to-one/${userId}`
+          );
+
+          const messages = result.data;
+          setMessagesList(
+            messages.filter(
+              (message) =>
+                (message.senderId === userId &&
+                  message.receiverId === CurrentChat._id) ||
+                (message.senderId === CurrentChat._id &&
+                  message.receiverId === userId)
+            )
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching messages:", error);
+      }
+    };
+
+    getMessages();
+  }, [CurrentChat?._id, userId, ws]);
+
+  useEffect(() => {
+    const messageToEdit = MessagesList.find((msg) => msg._id === EditId);
+    if (messageToEdit && messageToEdit.message) {
+      setEditValue(messageToEdit.message);
+    } else {
+      setEditValue("");
+    }
+  }, [EditId, MessagesList]);
+
+  useEffect(() => {
+    const messageStatusHandle = async ({ messageId }) => {
+      setMessagesList((prev) => {
+        const message = prev.find((msg) => msg._id === messageId);
+        if (message) {
+          return prev.map((msg) =>
+            msg._id === messageId ? { ...msg, seen: true } : msg
+          );
+        }
+        return prev;
+      });
+    };
+
+    const OneToOneDelete = ({ messageId }) => {
+      setMessagesList((prev) =>
+        prev.filter((message) => message._id !== messageId)
+      );
+    };
+
+    const OneToOneMessage = async ({
+      _id,
+      senderId,
+      receiverId,
+      message,
+      timming,
+      seen,
+    }) => {
+      if (senderId === userId || receiverId === userId) {
+        if (receiverId === userId) {
+          axios.get(
+            `${appServer}/api/v1/message/one-to-one/change-status/${_id}`
+          );
+        }
+        setMessagesList((prev) => [
+          ...prev,
+          {
+            _id,
+            senderId,
+            receiverId,
+            message,
+            timming,
+            seen,
+            type: "message",
+          },
+        ]);
+      }
+    };
+
+    const OneToOneEdited = ({ messageId, updatedMessage }) => {
+      setMessagesList((prev) => {
+        const index = prev.findIndex((message) => message._id === messageId);
+        if (index === -1) return prev;
+
+        const updatedMessages = [...prev];
+        updatedMessages[index] = {
+          ...updatedMessages[index],
+          message: updatedMessage,
+        };
+        return updatedMessages;
+      });
+    };
+
+    const recordingDeleteHandle = ({ filename }) => {
+      const deleteMessage = MessagesList.find(
+        (message) =>
+          message.type === "recording" && message.filePath === filename
+      );
+
+      if (deleteMessage) {
+        setMessagesList((prev) => [
+          ...prev.filter((message) => message._id !== deleteMessage._id),
+        ]);
+      }
+    };
+
+    ws.on("message-read", messageStatusHandle);
+    ws.on("one-to-one-delete", OneToOneDelete);
+    ws.on("one-to-one-edited", OneToOneEdited);
+    ws.on("one-to-one-message", OneToOneMessage);
+    ws.on("recording-delete", recordingDeleteHandle);
+    return () => {
+      ws.off("message-read", messageStatusHandle);
+      ws.off("one-to-one-delete", OneToOneDelete);
+      ws.off("one-to-one-edited", OneToOneEdited);
+      ws.off("one-to-one-message", OneToOneMessage);
+      ws.off("recording-delete", recordingDeleteHandle);
+    };
+  }, [MessagesList, userId, ws]);
+
   return (
     <div>
       {CallStatus !== "" && (
@@ -876,7 +1126,6 @@ function VC() {
           {RecordedBy && RecordedBy === userId ? userName : CurrentChat.name}.
         </div>
       )}
-
       {UpdatesMessage && (
         <div
           className="position-fixed top-3 left-0 right-0 text-center"
@@ -918,6 +1167,98 @@ function VC() {
         ></video>
       </div>
       <div
+        className="text-light position-fixed h-100 d-flex justify-content-center align-items-center"
+        style={{ top: 0, bottom: 0, left: ToggleChat, zIndex: 20 }}
+      >
+        <div
+          className="bg-light text-dark"
+          style={{ width: "22vw", height: "100%" }}
+        >
+          <div className="chatbox-body w-100" style={{ height: "90%" }}>
+            {MessagesList.map((Message) => {
+              const isSender = Message.senderId === userId ? false : true;
+
+              return Message.type === "message" ? (
+                <MessageBox
+                  CurrentChat={CurrentChat}
+                  key={Message._id}
+                  Message={Message}
+                  userId={userId}
+                  onEdit={() => setEditId(Message._id)}
+                  onDelete={() => {
+                    deleteMessage(Message._id);
+                  }}
+                />
+              ) : (
+                Message.type === "recording" && (
+                  <div
+                    key={Message._id}
+                    className={`d-flex align-items-center ${
+                      isSender ? "justify-content-start" : "justify-content-end"
+                    } px-3`}
+                  >
+                    <div
+                      className="position-relative my-2 rounded px-2 pt-2 bg-white"
+                      style={{ maxWidth: "250px" }}
+                    >
+                      <p className="bg-light text-dark rounded p-2 text-ellipsis overflow-hidden whitespace-nowrap">
+                        {Message.filePath}
+                      </p>
+                      <div className="d-flex justify-content-start align-items-center pt-1">
+                        <button
+                          className="bg-info text-light px-3 py-2 ml-0 mr-2 rounded"
+                          onClick={() =>
+                            Message.filePath &&
+                            downloadRecording(Message.filePath)
+                          }
+                        >
+                          Download
+                        </button>
+                        {Message.senderId === userId && (
+                          <button
+                            className="bg-info text-light px-3 py-2 rounded"
+                            onClick={() =>
+                              Message.filePath &&
+                              deleteRecording(Message.filePath)
+                            }
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
+              );
+            })}
+          </div>
+          <div
+            className="chatbox-footer d-flex justify-content-center align-items-center w-100 py-3"
+            style={{ height: "10%" }}
+          >
+            <input
+              type="text"
+              placeholder="Type here..."
+              value={Message}
+              onChange={(e) => setMessage(e.target.value)}
+              className="p-2"
+              style={{ width: "80% !important" }}
+            />
+            <button onClick={sendMessage}>
+              <Send fontSize="inherit" />
+            </button>
+          </div>
+        </div>
+        <div className="position-relative h-100 w-auto d-flex justify-content-center align-items-center">
+          <button
+            className="bg-primary py-3 rounded-r m-0"
+            onClick={() => setToggleChat(ToggleChat === "0" ? "-22%" : "0")}
+          >
+            {ToggleChat === "0" ? <ChevronLeft /> : <ChevronRight />}
+          </button>
+        </div>
+      </div>
+      <div
         className="position-fixed right-0 bottom-0 left-0 text-center mb-4"
         style={{ zIndex: 20 }}
       >
@@ -957,6 +1298,33 @@ function VC() {
           <CallEnd />
         </button>
       </div>
+
+      {EditId !== "" && (
+        <div className="position-fixed d-flex justify-content-center align-items-center message-edit">
+          <div className="bg-white px-3 py-2 rounded">
+            <input
+              type="text"
+              value={EditValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              className="my-2 border border-primary rounded"
+            />
+            <div className="d-flex align-items-center justify-content-around">
+              <button
+                className="bg-primary text-white px-2 py-1 rounded"
+                onClick={CencelEditedMessage}
+              >
+                Cencel
+              </button>
+              <button
+                className="bg-primary text-white px-2 py-1 rounded"
+                onClick={sendEditMessage}
+              >
+                Send
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
