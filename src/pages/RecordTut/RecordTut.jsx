@@ -219,12 +219,9 @@ const RecordTut = () => {
 
       audioRecorder = new MediaRecorder(destination.stream);
       if(AudioRecorder && AudioRecorder.state === "recording") {
-        mediaRecorder.start();
         audioRecorder.start();
       } else if(AudioRecorder && AudioRecorder.state === "paused") {
-        mediaRecorder.start();
         audioRecorder.start();
-        mediaRecorder.pause();
         audioRecorder.pause();
       }
       setAudioRecorder(audioRecorder);
@@ -284,13 +281,14 @@ const RecordTut = () => {
     return () => {
       setupAudio();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [LocalStream, ScreenStream, userId]);
 
   useEffect(() => {
     const canvas = CanvasRef.current;
     const stream = canvas.captureStream();
-    const recorder = mediaRecorder || new MediaRecorder(stream);
-    !mediaRecorder && setMediaRecorder(recorder);
+    const recorder = new MediaRecorder(stream);
+    setMediaRecorder(recorder);
 
     recorder.addEventListener(
       "dataavailable",
