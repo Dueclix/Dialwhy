@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import React, { useEffect, useState } from "react";
-import { Contacts, Message } from "@mui/icons-material";
+import { Contacts, Message, PlayCircleFilledOutlined } from "@mui/icons-material";
 import { server } from "../LoginSignup";
 import Cookies from "js-cookie";
 import axios from "axios";
@@ -141,6 +141,13 @@ function AccountNav() {
               <li className="nav-item">
                 <Link className="nav-link" to="/chat">
                   <Message /> Chat
+                </Link>
+              </li>
+              <li className={`nav-item ${
+                  location.pathname === "/tutorials" ? "active" : ""
+                }`}>
+                <Link className="nav-link" to="/tutorials">
+                  <PlayCircleFilledOutlined /> Record Tutorials
                 </Link>
               </li>
               <li

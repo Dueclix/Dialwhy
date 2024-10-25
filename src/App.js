@@ -17,6 +17,8 @@ import ResetPassword from "./Components/ResetPassword.jsx";
 import EditUser from "./pages/Create-Users/CreateUsers.jsx";
 import CreateMember from "./Components/CreateMembers.jsx";
 import ViewUsers from "./pages/View-Users/ViewUsers.jsx";
+import Tutorials from "./pages/Tutorials/Tutorials.jsx";
+import RecordTut from "./pages/RecordTut/RecordTut.jsx";
 import LoginSignup from "./Components/LoginSignup.jsx";
 import Contacts from "./pages/Contacts/Contacts.jsx";
 import CreateRoom from "./Components/CreateRoom.jsx";
@@ -72,55 +74,58 @@ function App() {
     <>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route exact path="/account" element={<MyAccount />} />
-          <Route exact path="/Contacts" element={<Contacts />} />
-          <Route exact path="/Chat" element={<Chat />} />
-          <Route exact path="/vc/:callId" element={<VC />} />
-          <Route exact path="/room/:roomId" element={<Room />} />
-          <Route exact path="/createroom" element={<CreateRoom />} />
-          <Route exact path="/about" element={<About />} />
-          <Route exact path="/login" element={<LoginSignup />} />
-          <Route exact path="/forgot-password" element={<ForgotPassword />} />
           <Route
             exact
             path="/password/reset/:token"
             element={<ResetPassword />}
           />
-          <Route exact path="/rooms" element={<Rooms />} />
-          <Route exact path="/permission/:roomId" element={<AskToJoin />} />
-          <Route exact path="/room/edit/:id" element={<EditRoom />} />
-          <Route exact path="/contact" element={<Contact />} />
-          <Route exact path="/privacy" element={<Privacy />} />
-          <Route exact path="/change-password" element={<Changepassword />} />
-          <Route exact path="/my-members" element={<Mymembers />} />
-          <Route exact path="/create-members" element={<CreateMember />} />
-          <Route exact path="/get-quote" element={<GetQuote />} />
-          <Route exact path="/video-background" element={<VideoBackground />} />
           <Route
             exact
             path="/change-background"
             element={<ChangeBackground />}
           />
-          <Route exact path="/payment" element={<Payment />} />
-          <Route exact path="/checkout" element={<Checkout />} />
-          <Route path="/phpfile" element={<RedirectToPHPFile />} />
+          <Route exact path="/video-background" element={<VideoBackground />} />
+          <Route exact path="/change-password" element={<Changepassword />} />
+          <Route exact path="/forgot-password" element={<ForgotPassword />} />
           <Route exact path="/review-checkout" element={<CheckoutReview />} />
+          <Route exact path="/permission/:roomId" element={<AskToJoin />} />
+          <Route exact path="/create-members" element={<CreateMember />} />
+          <Route exact path="/record-tutorial" element={<RecordTut />} />
+          <Route exact path="/room/edit/:id" element={<EditRoom />} />
+          <Route exact path="/createroom" element={<CreateRoom />} />
+          <Route exact path="/my-members" element={<Mymembers />} />
+          <Route path="/phpfile" element={<RedirectToPHPFile />} />
+          <Route exact path="/tutorials" element={<Tutorials />} />
+          <Route exact path="/get-quote" element={<GetQuote />} />
+          <Route exact path="/login" element={<LoginSignup />} />
+          <Route exact path="/account" element={<MyAccount />} />
+          <Route exact path="/Contacts" element={<Contacts />} />
+          <Route exact path="/room/:roomId" element={<Room />} />
+          <Route exact path="/checkout" element={<Checkout />} />
+          <Route exact path="/contact" element={<Contact />} />
+          <Route exact path="/privacy" element={<Privacy />} />
+          <Route exact path="/payment" element={<Payment />} />
+          <Route exact path="/vc/:callId" element={<VC />} />
+          <Route exact path="/about" element={<About />} />
+          <Route exact path="/rooms" element={<Rooms />} />
+          <Route exact path="/Chat" element={<Chat />} />
+          <Route path="/" element={<Home />} />
+
           {/* Admin Routes  */}
-          <Route path="/admin-panel" element={<LandingPage />} />
-          <Route path="/admin/login" element={<LoginForm />} />
-          <Route path="/admin/edit-user/:id" element={<EditUser />} />
-          <Route path="/admin/view-users" element={<ViewUsers />} />
+          <Route path="/admin/zego-api/edit/:id" element={<EditAPIKeys />} />
+          <Route path="/admin/dashboard-links" element={<DashboardLink />} />
           <Route path="/admin/pending-users" element={<PendingUsers />} />
-          <Route path="/admin/zego-api" element={<ZegoAPI />} />
           <Route path="/admin/update-link/:id" element={<UpdateLink />} />
-          <Route path="/admin/create-link" element={<CreateLink />} />
-          <Route path="/admin/navbar-links" element={<NavbarLink />} />
-          <Route path="/admin/footer-links" element={<FooterLink />} />
           <Route path="/admin/footer2-links" element={<Footer2Link />} />
           <Route path="/admin/account-links" element={<AccountLink />} />
-          <Route path="/admin/dashboard-links" element={<DashboardLink />} />
-          <Route path="/admin/zego-api/edit/:id" element={<EditAPIKeys />} />
+          <Route path="/admin/navbar-links" element={<NavbarLink />} />
+          <Route path="/admin/footer-links" element={<FooterLink />} />
+          <Route path="/admin/edit-user/:id" element={<EditUser />} />
+          <Route path="/admin/create-link" element={<CreateLink />} />
+          <Route path="/admin/view-users" element={<ViewUsers />} />
+          <Route path="/admin-panel" element={<LandingPage />} />
+          <Route path="/admin/zego-api" element={<ZegoAPI />} />
+          <Route path="/admin/login" element={<LoginForm />} />
         </Routes>
       </BrowserRouter>
       <Toaster />

@@ -583,17 +583,9 @@ function VC() {
       }
     };
 
-    const recordingHandle = ({ call_id, recording, userId }) => {
-      if (call_id === callId && userId === CurrentChat?._id) {
-        setIsCallRecording(recording);
-        setRecordedBy(recording ? CurrentChat?._id : null);
-      }
-    };
-
     ws.on("calling", handleCalling);
     ws.on("ringing", handleRinging);
     ws.on("change-event", ChangeEvent);
-    ws.on("recording", recordingHandle);
     ws.on("declined", handleCallDeclined);
     ws.on("accepting", handleCallAccepted);
     ws.on("receiver-busy", handleReceiverBusy);
@@ -602,7 +594,6 @@ function VC() {
       ws.off("calling", handleCalling);
       ws.off("ringing", handleRinging);
       ws.off("change-event", ChangeEvent);
-      ws.off("recording", recordingHandle);
       ws.off("declined", handleCallDeclined);
       ws.off("accepting", handleCallAccepted);
       ws.off("receiver-busy", handleReceiverBusy);
@@ -1104,6 +1095,35 @@ function VC() {
       });
     };
 
+    const recordingSaveHandle = ({
+      _id,
+      senderId,
+      receiverId,
+      filePath,
+      timming,
+      seen,
+    }) => {
+      if (senderId === userId || receiverId === userId) {
+        if (receiverId === userId) {
+          axios.get(
+            `${appServer}/api/v1/message/one-to-one/change-status/${_id}`
+          );
+        }
+        setMessagesList((prev) => [
+          ...prev,
+          {
+            _id,
+            senderId,
+            receiverId,
+            filePath,
+            timming,
+            seen,
+            type: "recording",
+          },
+        ]);
+      }
+    };
+
     const recordingDeleteHandle = ({ filename }) => {
       const deleteMessage = MessagesList.find(
         (message) =>
@@ -1117,19 +1137,30 @@ function VC() {
       }
     };
 
+    const recordingHandle = ({ call_id, recording, userId }) => {
+      if (call_id === callId && userId === CurrentChat?._id) {
+        setIsCallRecording(recording);
+        setRecordedBy(recording ? CurrentChat?._id : null);
+      }
+    };
+
+    ws.on("recording", recordingHandle);
     ws.on("message-read", messageStatusHandle);
     ws.on("one-to-one-delete", OneToOneDelete);
     ws.on("one-to-one-edited", OneToOneEdited);
     ws.on("one-to-one-message", OneToOneMessage);
+    ws.on("recording-save", recordingSaveHandle);
     ws.on("recording-delete", recordingDeleteHandle);
     return () => {
+      ws.off("recording", recordingHandle);
       ws.off("message-read", messageStatusHandle);
       ws.off("one-to-one-delete", OneToOneDelete);
       ws.off("one-to-one-edited", OneToOneEdited);
       ws.off("one-to-one-message", OneToOneMessage);
+      ws.off("recording-save", recordingSaveHandle);
       ws.off("recording-delete", recordingDeleteHandle);
     };
-  }, [MessagesList, userId, ws]);
+  }, [CurrentChat?._id, MessagesList, callId, userId, ws]);
 
   return (
     <div>
