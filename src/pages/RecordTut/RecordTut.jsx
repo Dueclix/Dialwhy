@@ -294,7 +294,7 @@ const RecordTut = () => {
       "dataavailable",
       (ev) => (RecorderChunksRef.current = ev.data)
     );
-  }, [mediaRecorder]);
+  }, []);
 
   return (
     <div className="bg-dark">
