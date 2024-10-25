@@ -219,11 +219,12 @@ const RecordTut = () => {
 
       audioRecorder = new MediaRecorder(destination.stream);
       if(AudioRecorder && AudioRecorder.state === "recording") {
-        console.log(AudioRecorder.state);
+        mediaRecorder.start();
         audioRecorder.start();
       } else if(AudioRecorder && AudioRecorder.state === "paused") {
-        console.log(AudioRecorder.state);
+        mediaRecorder.start();
         audioRecorder.start();
+        mediaRecorder.pause();
         audioRecorder.pause();
       }
       setAudioRecorder(audioRecorder);
