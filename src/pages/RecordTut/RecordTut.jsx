@@ -218,6 +218,14 @@ const RecordTut = () => {
       }
 
       audioRecorder = new MediaRecorder(destination.stream);
+      if(AudioRecorder && AudioRecorder.state === "recording") {
+        console.log(AudioRecorder.state);
+        audioRecorder.start();
+      } else if(AudioRecorder && AudioRecorder.state === "paused") {
+        console.log(AudioRecorder.state);
+        audioRecorder.start();
+        audioRecorder.pause();
+      }
       setAudioRecorder(audioRecorder);
 
       audioRecorder.addEventListener("dataavailable", (ev) => {
