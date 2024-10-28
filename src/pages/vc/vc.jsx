@@ -467,6 +467,7 @@ function VC() {
 
     pc.ontrack = (event) => {
       remoteVideoRef.current.srcObject = event.streams[0];
+      console.log(event.track);
       setRemoteStream(event.streams[0]);
     };
 
