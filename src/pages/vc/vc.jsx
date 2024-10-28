@@ -466,8 +466,8 @@ function VC() {
     };
     
     pc.ontrack = (event) => {
-      console.log(event.streams[0].getTracks());
       setRemoteStream(event.streams[0]);
+      event.track.enabled = true;
     };
 
     pc.addEventListener("iceconnectionstatechange", async () => {
@@ -715,7 +715,6 @@ function VC() {
   useEffect(() => {
     if (RemoteStream && remoteVideoRef.current) {
       remoteVideoRef.current.srcObject = RemoteStream;
-      console.log(remoteVideoRef.current.srcObject.getTracks(), RemoteStream.getTracks());
     }
   }, [RemoteStream]);
 
@@ -1218,16 +1217,17 @@ function VC() {
           autoPlay
           muted
         ></video>
-        <video
-          className="w-100 h-100 rounded"
-          disablePictureInPicture
-          disableRemotePlayback
-          style={{ zIndex: 1 }}
-          ref={remoteVideoRef}
-          controls={false}
-          playsInline
-          autoPlay
-        ></video>
+        {RemoteStream && 
+          <video
+            className="w-100 h-100 rounded bg-black"
+            disablePictureInPicture
+            disableRemotePlayback
+            style={{ zIndex: 1 }}
+            ref={remoteVideoRef}
+            playsInline
+            autoPlay
+          ></video>
+        }
       </div>
       <div
         className="text-light position-fixed h-100 d-flex justify-content-center align-items-center"
