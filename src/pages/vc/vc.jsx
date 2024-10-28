@@ -8,8 +8,8 @@ import {
   ChevronLeft,
   CallEnd,
   MicOff,
-  Mic,
   Send,
+  Mic,
 } from "@mui/icons-material";
 import sendNotification from "../../utils/sendNotifications";
 import React, { useEffect, useRef, useState } from "react";
@@ -466,8 +466,8 @@ function VC() {
     };
 
     pc.ontrack = (event) => {
+      remoteVideoRef.current.srcObject = event.streams[0];
       setRemoteStream(event.streams[0]);
-      console.log(event.track);
     };
 
     pc.addEventListener("iceconnectionstatechange", async () => {
@@ -637,20 +637,14 @@ function VC() {
       const videoStream = await getMediaStream(constraints.video, "video");
 
       if (audioStream instanceof MediaStream) {
-        audioStream.getTracks().forEach((track) => {
-          localStream.addTrack(track);
-          peerConnection.addTrack(track);
-        });
+        audioStream.getTracks().map((track) => localStream.addTrack(track));
         setMicEnable(true);
       } else {
         setMicEnable(false);
       }
 
       if (videoStream instanceof MediaStream) {
-        videoStream.getTracks().forEach((track) => {
-          localStream.addTrack(track);
-          peerConnection.addTrack(track);
-        });
+        videoStream.getTracks().map((track) => localStream.addTrack(track));
         setCameraEnable(true);
       } else {
         const canvas = document.createElement("canvas");
@@ -666,11 +660,14 @@ function VC() {
         const blackVideoTrack = blackStream.getVideoTracks()[0];
 
         localStream.addTrack(blackVideoTrack);
-        peerConnection.addTrack(blackVideoTrack);
         setCameraEnable(false);
       }
 
       setLocalStream(localStream);
+
+      localStream
+        .getTracks()
+        .forEach((track) => peerConnection.addTrack(track, localStream));
 
       if (callData.receivers === userId) {
         ws.emit("accepting", {
@@ -714,12 +711,6 @@ function VC() {
       localVideoRef.current.srcObject = LocalStream;
     }
   }, [LocalStream]);
-
-  useEffect(() => {
-    if (RemoteStream && remoteVideoRef.current) {
-      remoteVideoRef.current.srcObject = RemoteStream;
-    }
-  }, [RemoteStream]);
 
   // useEffect(() => {
   //   let canvasRecorder;
