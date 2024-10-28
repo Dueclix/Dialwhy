@@ -466,8 +466,6 @@ function VC() {
     };
 
     pc.ontrack = (event) => {
-      remoteVideoRef.current.srcObject = event.streams[0];
-      console.log(event.track);
       setRemoteStream(event.streams[0]);
     };
 
@@ -712,6 +710,12 @@ function VC() {
       localVideoRef.current.srcObject = LocalStream;
     }
   }, [LocalStream]);
+
+  useEffect(() => {
+    if (RemoteStream && remoteVideoRef.current) {
+      remoteVideoRef.current.srcObject = RemoteStream;
+    }
+  }, [RemoteStream]);
 
   useEffect(() => {
     let canvasRecorder;
@@ -1212,6 +1216,10 @@ function VC() {
           autoPlay
           muted
         ></video>
+        {remoteVideoRef.current.srcObject &&
+          remoteVideoRef.current.srcObject
+            .getTracks()
+            .map((track) => console.log(track))}
         <video
           className="w-100 h-100 rounded"
           disablePictureInPicture
@@ -1219,6 +1227,7 @@ function VC() {
           style={{ zIndex: 1 }}
           ref={remoteVideoRef}
           controls={false}
+          playsInline
           autoPlay
         ></video>
       </div>
