@@ -1216,8 +1216,8 @@ function VC() {
           autoPlay
           muted
         ></video>
-        {remoteVideoRef.current.srcObject &&
-          remoteVideoRef.current.srcObject
+        {remoteVideoRef.current?.srcObject &&
+          remoteVideoRef.current?.srcObject
             .getTracks()
             .map((track) => console.log(track))}
         <video
