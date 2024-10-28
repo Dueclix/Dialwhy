@@ -466,12 +466,8 @@ function VC() {
     };
 
     pc.ontrack = (event) => {
-      console.log(
-        RemoteStream,
-        remoteVideoRef.current?.srcObject,
-        remoteVideoRef.current?.src
-      );
       setRemoteStream(event.streams[0]);
+      console.log(event.track);
     };
 
     pc.addEventListener("iceconnectionstatechange", async () => {
