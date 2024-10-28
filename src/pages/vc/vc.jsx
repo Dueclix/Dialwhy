@@ -467,7 +467,6 @@ function VC() {
     
     pc.ontrack = (event) => {
       setRemoteStream(event.streams[0]);
-      event.track.enabled = true;
     };
 
     pc.addEventListener("iceconnectionstatechange", async () => {
@@ -637,14 +636,20 @@ function VC() {
       const videoStream = await getMediaStream(constraints.video, "video");
 
       if (audioStream instanceof MediaStream) {
-        audioStream.getTracks().map((track) => localStream.addTrack(track));
+        audioStream.getTracks().forEach((track) => {
+          localStream.addTrack(track);
+          peerConnection.addTrack(track);
+        });
         setMicEnable(true);
       } else {
         setMicEnable(false);
       }
 
       if (videoStream instanceof MediaStream) {
-        videoStream.getTracks().map((track) => localStream.addTrack(track));
+        videoStream.getTracks().forEach((track) => {
+          localStream.addTrack(track);
+          peerConnection.addTrack(track);
+        });
         setCameraEnable(true);
       } else {
         const canvas = document.createElement("canvas");
@@ -660,14 +665,11 @@ function VC() {
         const blackVideoTrack = blackStream.getVideoTracks()[0];
 
         localStream.addTrack(blackVideoTrack);
+        peerConnection.addTrack(blackVideoTrack);
         setCameraEnable(false);
       }
 
       setLocalStream(localStream);
-
-      localStream
-        .getTracks()
-        .forEach((track) => peerConnection.addTrack(track, localStream));
 
       if (callData.receivers === userId) {
         ws.emit("accepting", {
@@ -1217,17 +1219,16 @@ function VC() {
           autoPlay
           muted
         ></video>
-        {RemoteStream && 
-          <video
-            className="w-100 h-100 rounded bg-black"
-            disablePictureInPicture
-            disableRemotePlayback
-            style={{ zIndex: 1 }}
-            ref={remoteVideoRef}
-            playsInline
-            autoPlay
-          ></video>
-        }
+        <video
+          className="w-100 h-100 rounded"
+          disablePictureInPicture
+          disableRemotePlayback
+          style={{ zIndex: 1 }}
+          ref={remoteVideoRef}
+          controls={false}
+          playsInline
+          autoPlay
+        ></video>
       </div>
       <div
         className="text-light position-fixed h-100 d-flex justify-content-center align-items-center"
