@@ -51,7 +51,7 @@ function VC() {
   const [EditValue, setEditValue] = useState("");
   const [Message, setMessage] = useState("");
   const [EditId, setEditId] = useState("");
-  const remoteVideoRef = useRef();
+  // const remoteVideoRef = useRef();
   const localVideoRef = useRef();
   const { callId } = useParams();
   const ws = socket;
@@ -454,18 +454,23 @@ function VC() {
     }
   };
 
-  useEffect(() => {    
+  useEffect(() => {
     const pc = new RTCPeerConnection({
       iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
     });
-    
+
     pc.onicecandidate = (event) => {
       if (event.candidate) {
         ws.emit("ice-candidate", event.candidate);
       }
     };
-    
+
     pc.ontrack = (event) => {
+      console.log(
+        RemoteStream,
+        // remoteVideoRef.current?.srcObject,
+        // remoteVideoRef.current?.src
+      );
       setRemoteStream(event.streams[0]);
     };
 
@@ -714,11 +719,11 @@ function VC() {
     }
   }, [LocalStream]);
 
-  useEffect(() => {
-    if (RemoteStream && remoteVideoRef.current) {
-      remoteVideoRef.current.srcObject = RemoteStream;
-    }
-  }, [RemoteStream]);
+  // useEffect(() => {
+  //   if (RemoteStream && remoteVideoRef.current) {
+  //     remoteVideoRef.current.srcObject = RemoteStream;
+  //   }
+  // }, [RemoteStream]);
 
   useEffect(() => {
     let canvasRecorder;
@@ -1224,7 +1229,7 @@ function VC() {
           disablePictureInPicture
           disableRemotePlayback
           style={{ zIndex: 1 }}
-          ref={remoteVideoRef}
+          srcObject={RemoteStream}
           controls={false}
           playsInline
           autoPlay
