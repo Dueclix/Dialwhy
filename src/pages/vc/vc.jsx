@@ -26,24 +26,24 @@ function VC() {
   const [IsCallRecording, setIsCallRecording] = useState(false);
   const userId = JSON.parse(localStorage.getItem("user"))._id;
   const [peerConnection, setPeerConnection] = useState(null);
-  // const [RecorderCanvas, setRecorderCanvas] = useState(null);
-  // const [UpdatesMessage, setUpdatesMessage] = useState(null);
-  // const [mediaRecorder, setMediaRecorder] = useState(null);
-  // const [AudioRecorder, setAudioRecorder] = useState(null);
+  const [RecorderCanvas, setRecorderCanvas] = useState(null);
+  const [UpdatesMessage, setUpdatesMessage] = useState(null);
+  const [mediaRecorder, setMediaRecorder] = useState(null);
+  const [AudioRecorder, setAudioRecorder] = useState(null);
   const [IsScreenShare, setIsScreenShare] = useState(false);
-  // const [RecordedVideo, setRecordedVideo] = useState(null);
-  // const [RecorderAudio, setRecorderAudio] = useState(true);
-  // const [audioContext, setAudioContext] = useState(null);
+  const [RecordedVideo, setRecordedVideo] = useState(null);
+  const [RecorderAudio, setRecorderAudio] = useState(true);
+  const [audioContext, setAudioContext] = useState(null);
   const [CameraEnable, setCameraEnable] = useState(true);
   const [RemoteStream, setRemoteStream] = useState(null);
-  // const [IsRecording, setIsRecording] = useState(false);
+  const [IsRecording, setIsRecording] = useState(false);
   const [MessagesList, setMessagesList] = useState([]);
   const [LocalStream, setLocalStream] = useState(null);
   const [CurrentChat, setCurrentChat] = useState(null);
   const [RemoteVideo, setRemoteVideo] = useState(true);
   const [RemoteAudio, setRemoteAudio] = useState(true);
   const [ToggleChat, setToggleChat] = useState("-22%");
-  // const [AudioChunks, setAudioChunks] = useState([]);
+  const [AudioChunks, setAudioChunks] = useState([]);
   const [RecordedBy, setRecordedBy] = useState(null);
   const [MicEnable, setMicEnable] = useState(true);
   const [CallStatus, setCallStatus] = useState("");
@@ -469,10 +469,7 @@ function VC() {
     };
 
     pc.ontrack = (event) => {
-      console.log(event.track.kind, event.track.enabled, event.track.label);
       remoteStream.addTrack(event.track);
-      // remoteVideoRef.current.srcObject = event.streams[0];
-      // setRemoteStream(event.streams[0]);
     };
 
     pc.addEventListener("iceconnectionstatechange", async () => {
@@ -723,290 +720,290 @@ function VC() {
     }
   }, [RemoteStream]);
 
-  // useEffect(() => {
-  //   let canvasRecorder;
-  //   let audioRecorder;
+  useEffect(() => {
+    let canvasRecorder;
+    let audioRecorder;
 
-  //   let videoChunks = [];
+    let videoChunks = [];
 
-  //   const loadRecorder = async () => {
-  //     if (!LocalStream || !RemoteStream) return;
+    const loadRecorder = async () => {
+      if (!LocalStream || !RemoteStream) return;
 
-  //     const canvas = RecorderCanvas || document.createElement("canvas");
-  //     !RecorderCanvas && setRecorderCanvas(canvas);
-  //     const ctx = canvas.getContext("2d");
-  //     if (!ctx) return;
+      const canvas = RecorderCanvas || document.createElement("canvas");
+      !RecorderCanvas && setRecorderCanvas(canvas);
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
 
-  //     const CombinedContext = audioContext || new AudioContext();
-  //     !audioContext && setAudioContext(CombinedContext);
+      const CombinedContext = audioContext || new AudioContext();
+      !audioContext && setAudioContext(CombinedContext);
 
-  //     const localAudio = LocalStream.getAudioTracks().length;
-  //     const remoteAudio = RemoteStream.getAudioTracks().length;
+      const localAudio = LocalStream.getAudioTracks().length;
+      const remoteAudio = RemoteStream.getAudioTracks().length;
 
-  //     if (localAudio > 0 && remoteAudio > 0) {
-  //       const localSource =
-  //         CombinedContext.createMediaStreamSource(LocalStream);
-  //       const remoteSource =
-  //         CombinedContext.createMediaStreamSource(RemoteStream);
+      if (localAudio > 0 && remoteAudio > 0) {
+        const localSource =
+          CombinedContext.createMediaStreamSource(LocalStream);
+        const remoteSource =
+          CombinedContext.createMediaStreamSource(RemoteStream);
 
-  //       const localGain = CombinedContext.createGain();
-  //       const remoteGain = CombinedContext.createGain();
+        const localGain = CombinedContext.createGain();
+        const remoteGain = CombinedContext.createGain();
 
-  //       localGain.gain.setValueAtTime(1, CombinedContext.currentTime);
-  //       remoteGain.gain.setValueAtTime(1, CombinedContext.currentTime);
+        localGain.gain.setValueAtTime(1, CombinedContext.currentTime);
+        remoteGain.gain.setValueAtTime(1, CombinedContext.currentTime);
 
-  //       localSource.connect(localGain);
-  //       remoteSource.connect(remoteGain);
+        localSource.connect(localGain);
+        remoteSource.connect(remoteGain);
 
-  //       const destination = CombinedContext.createMediaStreamDestination();
+        const destination = CombinedContext.createMediaStreamDestination();
 
-  //       localGain.connect(destination);
-  //       remoteGain.connect(destination);
+        localGain.connect(destination);
+        remoteGain.connect(destination);
 
-  //       audioRecorder = AudioRecorder || new MediaRecorder(destination.stream);
-  //       !AudioRecorder && setAudioRecorder(audioRecorder);
+        audioRecorder = AudioRecorder || new MediaRecorder(destination.stream);
+        !AudioRecorder && setAudioRecorder(audioRecorder);
 
-  //       if ((!MicEnable && RecorderAudio) || (MicEnable && !RecorderAudio)) {
-  //         let RecordingStopped = false;
+        if ((!MicEnable && RecorderAudio) || (MicEnable && !RecorderAudio)) {
+          let RecordingStopped = false;
 
-  //         if (audioRecorder.state === "recording") {
-  //           audioRecorder.stop();
-  //           RecordingStopped = true;
-  //         }
+          if (audioRecorder.state === "recording") {
+            audioRecorder.stop();
+            RecordingStopped = true;
+          }
 
-  //         audioRecorder.stream
-  //           .getAudioTracks()
-  //           .map((track) => audioRecorder?.stream.removeTrack(track));
-  //         destination.stream
-  //           .getAudioTracks()
-  //           .map((track) => audioRecorder?.stream.addTrack(track));
-  //         setRecorderAudio(!RecorderAudio);
-  //         RecordingStopped && audioRecorder.start();
-  //       }
-  //     }
+          audioRecorder.stream
+            .getAudioTracks()
+            .map((track) => audioRecorder?.stream.removeTrack(track));
+          destination.stream
+            .getAudioTracks()
+            .map((track) => audioRecorder?.stream.addTrack(track));
+          setRecorderAudio(!RecorderAudio);
+          RecordingStopped && audioRecorder.start();
+        }
+      }
 
-  //     canvasRecorder =
-  //       mediaRecorder || new MediaRecorder(canvas.captureStream(30));
-  //     !mediaRecorder && setMediaRecorder(canvasRecorder);
+      canvasRecorder =
+        mediaRecorder || new MediaRecorder(canvas.captureStream(30));
+      !mediaRecorder && setMediaRecorder(canvasRecorder);
 
-  //     const localStream = new MediaStream();
-  //     LocalStream.getVideoTracks().map((track) => localStream.addTrack(track));
-  //     const localVideo = document.createElement("video");
-  //     localVideo.srcObject = localStream;
-  //     localVideo.autoplay = true;
+      const localStream = new MediaStream();
+      LocalStream.getVideoTracks().map((track) => localStream.addTrack(track));
+      const localVideo = document.createElement("video");
+      localVideo.srcObject = localStream;
+      localVideo.autoplay = true;
 
-  //     const remoteStream = new MediaStream();
-  //     RemoteStream.getVideoTracks().map((track) =>
-  //       remoteStream.addTrack(track)
-  //     );
-  //     const remoteVideo = document.createElement("video");
-  //     remoteVideo.srcObject = remoteStream;
-  //     remoteVideo.autoplay = true;
+      const remoteStream = new MediaStream();
+      RemoteStream.getVideoTracks().map((track) =>
+        remoteStream.addTrack(track)
+      );
+      const remoteVideo = document.createElement("video");
+      remoteVideo.srcObject = remoteStream;
+      remoteVideo.autoplay = true;
 
-  //     const drawFrame = () => {
-  //       canvas.width =
-  //         (localVideo.videoWidth || 0) + (remoteVideo.videoWidth || 0) + 100;
-  //       canvas.height =
-  //         Math.max(localVideo.videoHeight || 0, remoteVideo.videoHeight || 0) +
-  //         100;
+      const drawFrame = () => {
+        canvas.width =
+          (localVideo.videoWidth || 0) + (remoteVideo.videoWidth || 0) + 100;
+        canvas.height =
+          Math.max(localVideo.videoHeight || 0, remoteVideo.videoHeight || 0) +
+          100;
 
-  //       ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  //       ctx.drawImage(
-  //         localVideo,
-  //         50,
-  //         50,
-  //         canvas.width / 2 - 50,
-  //         canvas.height - 100
-  //       );
-  //       ctx.drawImage(
-  //         remoteVideo,
-  //         canvas.width / 2,
-  //         50,
-  //         canvas.width / 2 - 50,
-  //         canvas.height - 100
-  //       );
+        ctx.drawImage(
+          localVideo,
+          50,
+          50,
+          canvas.width / 2 - 50,
+          canvas.height - 100
+        );
+        ctx.drawImage(
+          remoteVideo,
+          canvas.width / 2,
+          50,
+          canvas.width / 2 - 50,
+          canvas.height - 100
+        );
 
-  //       ctx.fillStyle = "white";
-  //       ctx.font = "20px Arial";
-  //       ctx.textAlign = "center";
-  //       ctx.fillText(userName, canvas.width / 2 - 100, canvas.height - 50);
-  //       ctx.fillText(CurrentChat.name, canvas.width - 150, canvas.height - 50);
+        ctx.fillStyle = "white";
+        ctx.font = "20px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(userName, canvas.width / 2 - 100, canvas.height - 50);
+        ctx.fillText(CurrentChat.name, canvas.width - 150, canvas.height - 50);
 
-  //       requestAnimationFrame(drawFrame);
-  //     };
+        requestAnimationFrame(drawFrame);
+      };
 
-  //     try {
-  //       if (!IsRecording && audioRecorder) {
-  //         audioRecorder.ondataavailable = (ev) => {
-  //           setAudioChunks((prev) => [...prev, ev.data]);
-  //         };
+      try {
+        if (!IsRecording && audioRecorder) {
+          audioRecorder.ondataavailable = (ev) => {
+            setAudioChunks((prev) => [...prev, ev.data]);
+          };
 
-  //         canvasRecorder.ondataavailable = (ev) => {
-  //           videoChunks.push(ev.data);
-  //         };
+          canvasRecorder.ondataavailable = (ev) => {
+            videoChunks.push(ev.data);
+          };
 
-  //         canvasRecorder.onstop = async () => {
-  //           const videoBlob = new Blob(videoChunks, {
-  //             type: "video/webm",
-  //           });
-  //           videoChunks = [];
+          canvasRecorder.onstop = async () => {
+            const videoBlob = new Blob(videoChunks, {
+              type: "video/webm",
+            });
+            videoChunks = [];
 
-  //           setRecordedVideo(videoBlob);
-  //         };
+            setRecordedVideo(videoBlob);
+          };
 
-  //         canvasRecorder.onerror = (e) => {
-  //           console.error("Error during recording:", e);
-  //         };
-  //       }
+          canvasRecorder.onerror = (e) => {
+            console.error("Error during recording:", e);
+          };
+        }
 
-  //       if (IsCallRecording && !RecordedBy && !IsRecording && audioRecorder) {
-  //         drawFrame();
+        if (IsCallRecording && !RecordedBy && !IsRecording && audioRecorder) {
+          drawFrame();
 
-  //         audioRecorder.start();
-  //         canvasRecorder.start();
+          audioRecorder.start();
+          canvasRecorder.start();
 
-  //         setIsRecording(true);
-  //         setRecordedBy(userId);
-  //         ws.emit("recording", {
-  //           call_id: callId,
-  //           recording: true,
-  //           userId: userId,
-  //         });
-  //       }
+          setIsRecording(true);
+          setRecordedBy(userId);
+          ws.emit("recording", {
+            call_id: callId,
+            recording: true,
+            userId: userId,
+          });
+        }
 
-  //       if (
-  //         RecordedBy === userId &&
-  //         !IsCallRecording &&
-  //         IsRecording &&
-  //         audioRecorder &&
-  //         audioRecorder.state === "recording" &&
-  //         canvasRecorder.state === "recording"
-  //       ) {
-  //         audioRecorder.stop();
-  //         canvasRecorder.stop();
-  //         setIsRecording(false);
-  //         setRecordedBy(null);
-  //         ws.emit("recording", {
-  //           call_id: callId,
-  //           recording: false,
-  //           userId: userId,
-  //         });
-  //       }
+        if (
+          RecordedBy === userId &&
+          !IsCallRecording &&
+          IsRecording &&
+          audioRecorder &&
+          audioRecorder.state === "recording" &&
+          canvasRecorder.state === "recording"
+        ) {
+          audioRecorder.stop();
+          canvasRecorder.stop();
+          setIsRecording(false);
+          setRecordedBy(null);
+          ws.emit("recording", {
+            call_id: callId,
+            recording: false,
+            userId: userId,
+          });
+        }
 
-  //       if (RecordedVideo) {
-  //         const currentDate = new Date();
-  //         const formattedDate = currentDate
-  //           .toISOString()
-  //           .replace(/:/g, "-")
-  //           .split(".")[0]
-  //           .replace("T", "_");
-  //         const videoFile = `video-wiredtalk-call-recording_${callId}_${formattedDate}.mp4`;
-  //         const audioFile = `audio-wiredtalk-call-recording_${callId}_${formattedDate}.mp3`;
+        if (RecordedVideo) {
+          const currentDate = new Date();
+          const formattedDate = currentDate
+            .toISOString()
+            .replace(/:/g, "-")
+            .split(".")[0]
+            .replace("T", "_");
+          const videoFile = `video-wiredtalk-call-recording_${callId}_${formattedDate}.mp4`;
+          const audioFile = `audio-wiredtalk-call-recording_${callId}_${formattedDate}.mp3`;
 
-  //         const audioBlobs = await Promise.all(
-  //           AudioChunks.map(
-  //             (chunk) => new Blob([chunk], { type: "audio/webm" })
-  //           )
-  //         );
+          const audioBlobs = await Promise.all(
+            AudioChunks.map(
+              (chunk) => new Blob([chunk], { type: "audio/webm" })
+            )
+          );
 
-  //         const formData = new FormData();
-  //         formData.append("videoFile", RecordedVideo, videoFile);
-  //         audioBlobs.map((audioBlob, index) =>
-  //           formData.append(
-  //             "audioFile-" + index,
-  //             audioBlob,
-  //             index + "-" + audioFile
-  //           )
-  //         );
-  //         formData.append("senderId", userId);
-  //         formData.append("receiverId", CurrentChat._id);
-  //         formData.append(
-  //           "timming",
-  //           currentDate.toLocaleTimeString([], {
-  //             hour12: true,
-  //             hour: "2-digit",
-  //             minute: "2-digit",
-  //           })
-  //         );
+          const formData = new FormData();
+          formData.append("videoFile", RecordedVideo, videoFile);
+          audioBlobs.map((audioBlob, index) =>
+            formData.append(
+              "audioFile-" + index,
+              audioBlob,
+              index + "-" + audioFile
+            )
+          );
+          formData.append("senderId", userId);
+          formData.append("receiverId", CurrentChat._id);
+          formData.append(
+            "timming",
+            currentDate.toLocaleTimeString([], {
+              hour12: true,
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          );
 
-  //         setRecordedVideo(null);
+          setRecordedVideo(null);
 
-  //         await axios
-  //           .post(`${appServer}/uploads/`, formData, {
-  //             headers: {
-  //               "Content-Type": "multipart/form-data",
-  //             },
-  //           })
-  //           .then((res) => {
-  //             setUpdatesMessage(res.data.message);
-  //             setTimeout(() => setUpdatesMessage(null), 5000);
+          await axios
+            .post(`${appServer}/uploads/`, formData, {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            })
+            .then((res) => {
+              setUpdatesMessage(res.data.message);
+              setTimeout(() => setUpdatesMessage(null), 5000);
 
-  //             let addedRecording = false;
-  //             const newMessage = {
-  //               _id: res.data.recordingId,
-  //               senderId: userId,
-  //               receiverId: CurrentChat._id,
-  //               filePath: videoFile.replace("video-", ""),
-  //               timming: currentDate.toLocaleTimeString([], {
-  //                 hour12: true,
-  //                 hour: "2-digit",
-  //                 minute: "2-digit",
-  //               }),
-  //               seen: true,
-  //               type: "recording",
-  //             };
+              let addedRecording = false;
+              const newMessage = {
+                _id: res.data.recordingId,
+                senderId: userId,
+                receiverId: CurrentChat._id,
+                filePath: videoFile.replace("video-", ""),
+                timming: currentDate.toLocaleTimeString([], {
+                  hour12: true,
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }),
+                seen: true,
+                type: "recording",
+              };
 
-  //             setMessagesList((prevMessages) => {
-  //               const recordingExist = prevMessages.some(
-  //                 (message) => message._id === newMessage._id
-  //               );
+              setMessagesList((prevMessages) => {
+                const recordingExist = prevMessages.some(
+                  (message) => message._id === newMessage._id
+                );
 
-  //               if (!recordingExist && !addedRecording) {
-  //                 addedRecording = true;
-  //                 return [...prevMessages, newMessage];
-  //               }
+                if (!recordingExist && !addedRecording) {
+                  addedRecording = true;
+                  return [...prevMessages, newMessage];
+                }
 
-  //               return prevMessages;
-  //             });
+                return prevMessages;
+              });
 
-  //             ws.emit("recording-save", newMessage);
-  //           })
-  //           .catch((err) => console.log(err));
-  //       }
+              ws.emit("recording-save", newMessage);
+            })
+            .catch((err) => console.log(err));
+        }
 
-  //       return;
-  //     } catch (error) {
-  //       return console.error("Error loading functions:", error);
-  //     }
-  //   };
+        return;
+      } catch (error) {
+        return console.error("Error loading functions:", error);
+      }
+    };
 
-  //   loadRecorder();
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [
-  //   callId,
-  //   MicEnable,
-  //   LocalStream,
-  //   RemoteStream,
-  //   audioContext,
-  //   setAudioContext,
-  //   RecorderCanvas,
-  //   setRecorderCanvas,
-  //   IsCallRecording,
-  //   setIsCallRecording,
-  //   IsRecording,
-  //   setIsRecording,
-  //   mediaRecorder,
-  //   setMediaRecorder,
-  //   AudioRecorder,
-  //   setAudioRecorder,
-  //   RecorderAudio,
-  //   setRecorderAudio,
-  //   RecordedVideo,
-  //   setRecordedVideo,
-  //   AudioChunks,
-  //   setAudioChunks,
-  // ]);
+    loadRecorder();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    callId,
+    MicEnable,
+    LocalStream,
+    RemoteStream,
+    audioContext,
+    setAudioContext,
+    RecorderCanvas,
+    setRecorderCanvas,
+    IsCallRecording,
+    setIsCallRecording,
+    IsRecording,
+    setIsRecording,
+    mediaRecorder,
+    setMediaRecorder,
+    AudioRecorder,
+    setAudioRecorder,
+    RecorderAudio,
+    setRecorderAudio,
+    RecordedVideo,
+    setRecordedVideo,
+    AudioChunks,
+    setAudioChunks,
+  ]);
 
   useEffect(() => {
     const getMessages = async () => {
@@ -1192,7 +1189,7 @@ function VC() {
           {RecordedBy && RecordedBy === userId ? userName : CurrentChat.name}.
         </div>
       )}
-      {/* {UpdatesMessage && (
+      {UpdatesMessage && (
         <div
           className="position-fixed top-3 left-0 right-0 text-center"
           style={{ zIndex: 20 }}
@@ -1201,7 +1198,7 @@ function VC() {
             {UpdatesMessage}
           </p>
         </div>
-      )} */}
+      )}
       <div
         className="bg-dark position-relative w-100"
         style={{ zIndex: 10, height: "100vh" }}
