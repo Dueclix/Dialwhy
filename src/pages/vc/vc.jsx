@@ -457,19 +457,20 @@ function VC() {
   useEffect(() => {
     const remoteStream = new MediaStream();
     setRemoteStream(remoteStream);
-
+    
     const pc = new RTCPeerConnection({
       iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
     });
-
+    
     pc.onicecandidate = (event) => {
       if (event.candidate) {
         ws.emit("ice-candidate", event.candidate);
       }
     };
-
+    
     pc.ontrack = (event) => {
       remoteStream.addTrack(event.track);
+      setRemoteStream(remoteStream);
     };
 
     pc.addEventListener("iceconnectionstatechange", async () => {
@@ -717,7 +718,7 @@ function VC() {
   useEffect(() => {
     if (RemoteStream && remoteVideoRef.current) {
       remoteVideoRef.current.srcObject = RemoteStream;
-      console.log(remoteVideoRef.current.srcObject.getTracks());
+      console.log(remoteVideoRef.current.srcObject.getTracks(), RemoteStream.getTracks());
     }
   }, [RemoteStream]);
 
