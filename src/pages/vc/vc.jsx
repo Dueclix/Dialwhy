@@ -454,10 +454,7 @@ function VC() {
     }
   };
 
-  useEffect(() => {
-    const remoteStream = new MediaStream();
-    setRemoteStream(remoteStream);
-    
+  useEffect(() => {    
     const pc = new RTCPeerConnection({
       iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
     });
@@ -469,8 +466,8 @@ function VC() {
     };
     
     pc.ontrack = (event) => {
-      remoteStream.addTrack(event.track);
-      setRemoteStream(remoteStream);
+      console.log(event.streams[0].getTracks());
+      setRemoteStream(event.streams[0]);
     };
 
     pc.addEventListener("iceconnectionstatechange", async () => {
