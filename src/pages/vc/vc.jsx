@@ -35,7 +35,7 @@ function VC() {
   // const [RecorderAudio, setRecorderAudio] = useState(true);
   // const [audioContext, setAudioContext] = useState(null);
   const [CameraEnable, setCameraEnable] = useState(true);
-  const [RemoteStream, setRemoteStream] = useState(null);
+  // const [RemoteStream, setRemoteStream] = useState(null);
   // const [IsRecording, setIsRecording] = useState(false);
   const [MessagesList, setMessagesList] = useState([]);
   const [LocalStream, setLocalStream] = useState(null);
@@ -467,7 +467,8 @@ function VC() {
 
     pc.ontrack = (event) => {
       remoteVideoRef.current.srcObject = event.streams[0];
-      setRemoteStream(event.streams[0]);
+      // setRemoteStream(event.streams[0]);
+      console.log(event.streams[0]);
     };
 
     pc.addEventListener("iceconnectionstatechange", async () => {
@@ -1218,7 +1219,7 @@ function VC() {
           style={{ zIndex: 1 }}
           ref={remoteVideoRef}
           controls={false}
-          playsInline
+          // playsInline
           autoPlay
         ></video>
       </div>
