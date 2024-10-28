@@ -714,6 +714,7 @@ function VC() {
   useEffect(() => {
     if (RemoteStream && remoteVideoRef.current) {
       remoteVideoRef.current.srcObject = RemoteStream;
+      console.log(remoteVideoRef.current.srcObject.getTracks());
     }
   }, [RemoteStream]);
 
@@ -1216,10 +1217,6 @@ function VC() {
           autoPlay
           muted
         ></video>
-        {remoteVideoRef.current?.srcObject &&
-          remoteVideoRef.current?.srcObject
-            .getTracks()
-            .map((track) => console.log(track))}
         <video
           className="w-100 h-100 rounded"
           disablePictureInPicture
