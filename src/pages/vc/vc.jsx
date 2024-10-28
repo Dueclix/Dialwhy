@@ -35,7 +35,7 @@ function VC() {
   // const [RecorderAudio, setRecorderAudio] = useState(true);
   // const [audioContext, setAudioContext] = useState(null);
   const [CameraEnable, setCameraEnable] = useState(true);
-  // const [RemoteStream, setRemoteStream] = useState(null);
+  const [RemoteStream, setRemoteStream] = useState(null);
   // const [IsRecording, setIsRecording] = useState(false);
   const [MessagesList, setMessagesList] = useState([]);
   const [LocalStream, setLocalStream] = useState(null);
@@ -455,6 +455,9 @@ function VC() {
   };
 
   useEffect(() => {
+    const remoteStream = new MediaStream();
+    setRemoteStream(remoteStream);
+
     const pc = new RTCPeerConnection({
       iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
     });
@@ -466,9 +469,10 @@ function VC() {
     };
 
     pc.ontrack = (event) => {
-      remoteVideoRef.current.srcObject = event.streams[0];
+      console.log(event.track.kind, event.track.enabled, event.track.label);
+      remoteStream.addTrack(event.track);
+      // remoteVideoRef.current.srcObject = event.streams[0];
       // setRemoteStream(event.streams[0]);
-      console.log(event.streams[0]);
     };
 
     pc.addEventListener("iceconnectionstatechange", async () => {
@@ -712,6 +716,12 @@ function VC() {
       localVideoRef.current.srcObject = LocalStream;
     }
   }, [LocalStream]);
+
+  useEffect(() => {
+    if (RemoteStream && remoteVideoRef.current) {
+      remoteVideoRef.current.srcObject = RemoteStream;
+    }
+  }, [RemoteStream]);
 
   // useEffect(() => {
   //   let canvasRecorder;
