@@ -3,75 +3,108 @@ import {
   StopScreenShareOutlined,
   VideocamOffOutlined,
   VideocamOutlined,
+  PlayArrowRounded,
   MicOff,
+  Pause,
   Stop,
   Mic,
-  PlayArrowRounded,
-  Pause,
 } from "@mui/icons-material";
-import axios from "axios";
 import React, { useEffect, useRef, useState } from "react";
 import { appServer } from "../../utils";
+import socket from "../../utils/socket";
+import axios from "axios";
+
+const RTCPeerConfig = {
+  iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+};
 
 const RecordTut = () => {
   const [ScreenShareToggle, setScreenShareToggle] = useState(false);
   const [RecorderState, setRecorderState] = useState("inactive");
+  const PeerARef = useRef(new RTCPeerConnection(RTCPeerConfig));
+  const PeerBRef = useRef(new RTCPeerConnection(RTCPeerConfig));
   const userId = JSON.parse(localStorage.getItem("user"))._id;
+  const [RecorderStream, setRecorderStream] = useState(null);
   const [ScreenStream, setScreenStream] = useState(null);
-  const [mediaRecorder, setMediaRecorder] = useState();
-  const [AudioRecorder, setAudioRecorder] = useState();
-  const [LocalStream, setLocalStream] = useState();
+  const [LocalStream, setLocalStream] = useState(null);
   const [MicToggle, setMicToggle] = useState(true);
   const [CamToggle, setCamToggle] = useState(true);
-  const RecorderChunksRef = useRef(null);
+  const RecorderVideoRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const RecorderChunksRef = useRef([]);
   const screenVideoRef = useRef(null);
   const localVideoRef = useRef(null);
   const CanvasRef = useRef(null);
+  const ws = socket;
+
+  ws.connect();
 
   const ShareScreen = async () => {
-    const newState = !ScreenShareToggle;
-    if (newState) {
-      const userMediaStream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
-        audio: true,
-      });
-      setScreenStream(userMediaStream);
+    try {
+      const newState = !ScreenShareToggle;
 
-      userMediaStream.getTracks().map((track) =>
-        track.addEventListener("ended", () => {
-          setScreenShareToggle(false);
-          setScreenStream(null);
-        })
-      );
-    } else {
-      const userMediaStream = ScreenStream;
-      userMediaStream.getTracks().map((track) => track.stop());
-      setScreenStream(null);
+      // if(RecorderState === "recording" || RecorderState === "paused") {
+      //   mediaRecorder.stop();
+      // }
+
+      if (newState) {
+        const userMediaStream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: true,
+        });
+        setScreenStream(userMediaStream);
+
+        userMediaStream.getTracks().map((track) =>
+          track.addEventListener("ended", () => {
+            setScreenShareToggle(false);
+            setScreenStream(null);
+          })
+        );
+      } else {
+        const userMediaStream = ScreenStream;
+        userMediaStream.getTracks().map((track) => track.stop());
+        setScreenStream(null);
+      }
+
+      setScreenShareToggle(newState);
+    } catch (err) {
+      console.log(err);
     }
-    setScreenShareToggle(newState);
   };
 
   const ToggleRecording = () => {
-    if (mediaRecorder.state === "inactive") {
-      mediaRecorder.start();
-      AudioRecorder.start();
+    if (mediaRecorderRef.current.state === "inactive") {
+      mediaRecorderRef.current.start();
     } else {
-      mediaRecorder.stop();
-      AudioRecorder.stop();
+      mediaRecorderRef.current.stop();
     }
-    setRecorderState(mediaRecorder.state);
+    console.log(mediaRecorderRef.current.state);
+    setRecorderState(mediaRecorderRef.current.state);
   };
 
   const PauseToggler = () => {
-    if (mediaRecorder.state === "recording") {
-      mediaRecorder.pause();
-      AudioRecorder.pause();
+    if (mediaRecorderRef.current.state === "recording") {
+      mediaRecorderRef.current.pause();
     } else {
-      mediaRecorder.resume();
-      AudioRecorder.resume();
+      mediaRecorderRef.current.state === "paused"
+        ? mediaRecorderRef.current.resume()
+        : mediaRecorderRef.current.start();
     }
-    setRecorderState(mediaRecorder.state);
+    setRecorderState(mediaRecorderRef.current.state);
   };
+
+  useEffect(() => {
+    const stream = new MediaStream();
+
+    PeerBRef.current.addEventListener("track", (ev) => {
+      stream.addTrack(ev.track);
+      setRecorderStream(stream);
+    });
+
+    PeerARef.current.addEventListener("icecandidate", (ev) =>
+      PeerBRef.current.addIceCandidate(ev.candidate)
+    );
+  }, []);
 
   useEffect(() => {
     const startLocalStream = async () => {
@@ -92,6 +125,21 @@ const RecordTut = () => {
         },
       });
 
+      if (PeerARef.current.signalingState !== "have-remote-offer") {
+        const offer = await PeerARef.current.createOffer();
+        await PeerARef.current.setLocalDescription(offer);
+        await PeerBRef.current.setRemoteDescription(offer);
+
+        const answer = await PeerBRef.current.createAnswer();
+        await PeerBRef.current.setLocalDescription(answer);
+        await PeerARef.current.setRemoteDescription(answer);
+      }
+
+      if (PeerARef.current.getSenders().length === 0) {
+        localStream
+          .getTracks()
+          .map((track) => PeerARef.current.addTrack(track, localStream));
+      }
       setLocalStream(localStream);
 
       return () => {
@@ -103,6 +151,7 @@ const RecordTut = () => {
     return () => {
       startLocalStream();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -116,6 +165,14 @@ const RecordTut = () => {
       screenVideoRef.current.srcObject = null;
     }
   }, [ScreenStream]);
+
+  useEffect(() => {
+    if (RecorderStream) {
+      RecorderVideoRef.current.srcObject = RecorderStream;
+    } else {
+      RecorderVideoRef.current.srcObject = null;
+    }
+  }, [RecorderStream]);
 
   useEffect(() => {
     if (LocalStream) {
@@ -188,113 +245,98 @@ const RecordTut = () => {
     };
 
     drawFrame();
+
+    const VideoTrack = canvas.captureStream().getTracks()[0];
+    const sendersLength = PeerARef.current.getSenders().length;
+
+    if (sendersLength >= 2) {
+      PeerARef.current
+        .getSenders()
+        .filter((sender) => sender.track.kind === "video")[0]
+        .replaceTrack(VideoTrack);
+    }
   }, [LocalStream, ScreenStream]);
 
   useEffect(() => {
     if (!LocalStream) return;
 
-    const audioChunks = [];
-    let sended = false;
-    let audioRecorder;
+    const audioContext = new AudioContext();
 
-    const setupAudio = () => {
-      const audioContext = new AudioContext();
+    const destination = audioContext.createMediaStreamDestination();
 
-      const localSource = audioContext.createMediaStreamSource(LocalStream);
-      const localGain = audioContext.createGain();
-      localGain.gain.setValueAtTime(1, audioContext.currentTime);
+    const localSource = audioContext.createMediaStreamSource(LocalStream);
+    const localGain = audioContext.createGain();
+    localGain.gain.setValueAtTime(1, audioContext.currentTime);
 
-      localSource.connect(localGain);
+    localSource.connect(localGain);
+    localGain.connect(destination);
 
-      const destination = audioContext.createMediaStreamDestination();
-      localGain.connect(destination);
+    if (ScreenStream) {
+      const screenSource = audioContext.createMediaStreamSource(ScreenStream);
+      const screenGain = audioContext.createGain();
+      screenGain.gain.setValueAtTime(1, audioContext.currentTime);
 
-      if (ScreenStream) {
-        const screenSource = audioContext.createMediaStreamSource(ScreenStream);
-        const screenGain = audioContext.createGain();
-        screenGain.gain.setValueAtTime(1, audioContext.currentTime);
-        screenSource.connect(screenGain);
-        screenGain.connect(destination);
-      }
+      screenSource.connect(screenGain);
+      screenGain.connect(destination);
+    }
 
-      audioRecorder = new MediaRecorder(destination.stream);
-      if(AudioRecorder && AudioRecorder.state === "recording") {
-        audioRecorder.start();
-      } else if(AudioRecorder && AudioRecorder.state === "paused") {
-        audioRecorder.start();
-        audioRecorder.pause();
-      }
-      setAudioRecorder(audioRecorder);
+    const AudioTrack = destination.stream.getTracks()[0];
+    const sendersLength = PeerARef.current.getSenders().length;
 
-      audioRecorder.addEventListener("dataavailable", (ev) => {
-        audioChunks.push(ev.data);
-      });
-
-      audioRecorder.addEventListener("stop", async () => {
-        if (!sended) {
-          sended = true;
-
-          const currentDate = new Date();
-          const formattedDate = currentDate
-            .toISOString()
-            .replace(/:/g, "-")
-            .split(".")[0]
-            .replace("T", "_");
-
-          const videoFile = `video-wiredtalk-tutorial-recording_${formattedDate}.mp4`;
-          const audioFile = `audio-wiredtalk-tutorial-recording_${formattedDate}.mp3`;
-
-          const videoBlob = new Blob([RecorderChunksRef.current], {
-            type: "video/mp4",
-          });
-          const audioBlob = new Blob(audioChunks, { type: "video/mp3" });
-
-          const formData = new FormData();
-          formData.append("video", videoBlob, videoFile);
-          formData.append("audio", audioBlob, audioFile);
-          formData.append("userId", userId);
-          formData.append(
-            "timing",
-            currentDate.toLocaleTimeString([], {
-              hour12: true,
-              hour: "2-digit",
-              minute: "2-digit",
-            })
-          );
-
-          const result = await axios.post(
-            `${appServer}/upload-tutorial`,
-            formData,
-            {
-              headers: { "Content-Type": "multipart/form-data" },
-            }
-          );
-
-          if (result.status === 200) {
-            window.location.replace("/");
-          }
-        }
-      });
-    };
-
-    setupAudio();
-    return () => {
-      setupAudio();
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [LocalStream, ScreenStream, userId]);
+    if (sendersLength >= 2) {
+      PeerARef.current
+        .getSenders()
+        .filter((sender) => sender.track.kind === "audio")[0]
+        .replaceTrack(AudioTrack);
+    }
+  }, [LocalStream, ScreenStream]);
 
   useEffect(() => {
-    const canvas = CanvasRef.current;
-    const stream = canvas.captureStream();
-    const recorder = new MediaRecorder(stream);
-    setMediaRecorder(recorder);
+    if (RecorderStream) {
+      const recorder = new MediaRecorder(RecorderStream);
+      mediaRecorderRef.current = recorder;
 
-    recorder.addEventListener(
-      "dataavailable",
-      (ev) => (RecorderChunksRef.current = ev.data)
-    );
-  }, []);
+      recorder.onstop = async () => {
+        const blob = new Blob(RecorderChunksRef.current, { type: "video/mp4" });
+
+        const currentDate = new Date();
+        const formattedDate = currentDate
+          .toISOString()
+          .replace(/:/g, "-")
+          .split(".")[0]
+          .replace("T", "_");
+
+        const filename = `dialwhy-tutorial-recording_${formattedDate}.mp4`;
+
+        const formData = new FormData();
+        formData.append("video", blob, filename);
+        formData.append("userId", userId);
+        formData.append(
+          "timing",
+          currentDate.toLocaleTimeString([], {
+            hour12: true,
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        );
+
+        const result = await axios.post(
+          `${appServer}/upload-tutorial`,
+          formData,
+          {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+        );
+
+        if (result.status === 200) {
+          window.location.replace("/");
+        }
+      };
+
+      recorder.ondataavailable = (ev) =>
+        RecorderChunksRef.current.push(ev.data);
+    }
+  }, [RecorderStream, userId]);
 
   return (
     <div className="bg-dark">
@@ -343,10 +385,19 @@ const RecordTut = () => {
         muted
       ></video>
       <div>
+        <video
+          className="d-none"
+          disablePictureInPicture
+          disableRemotePlayback
+          ref={RecorderVideoRef}
+          playsInline
+          autoPlay
+          muted
+        ></video>
         <canvas ref={CanvasRef} className="w-0 h-0"></canvas>
       </div>
       <div className="position-fixed bottom-0 left-0 right-0 d-flex justify-content-center align-items-center text-light">
-        {mediaRecorder && (
+        {mediaRecorderRef.current && (
           <button
             className={`${
               RecorderState === "inactive" ? "bg-success" : "bg-danger"
@@ -361,7 +412,7 @@ const RecordTut = () => {
             )}
           </button>
         )}
-        {mediaRecorder &&
+        {mediaRecorderRef.current &&
           (RecorderState === "recording" || RecorderState === "paused") && (
             <button
               className="bg-success p-3 rounded-full mx-3"
