@@ -22,6 +22,7 @@ import RecordTut from "./pages/RecordTut/RecordTut.jsx";
 import LoginSignup from "./Components/LoginSignup.jsx";
 import Contacts from "./pages/Contacts/Contacts.jsx";
 import CreateRoom from "./Components/CreateRoom.jsx";
+import TestPeer from "./pages/TestPeer/TestPeer.jsx";
 import Mymembers from "./Components/Mymembers.jsx";
 import EditAPIKeys from "./pages/EditAPIKeys.jsx";
 import GetQuote from "./Components/GetQuote.jsx";
@@ -96,6 +97,7 @@ function App() {
           <Route exact path="/my-members" element={<Mymembers />} />
           <Route path="/phpfile" element={<RedirectToPHPFile />} />
           <Route exact path="/tutorials" element={<Tutorials />} />
+          <Route exact path="/test-peer" element={<TestPeer />} />
           <Route exact path="/get-quote" element={<GetQuote />} />
           <Route exact path="/login" element={<LoginSignup />} />
           <Route exact path="/account" element={<MyAccount />} />
