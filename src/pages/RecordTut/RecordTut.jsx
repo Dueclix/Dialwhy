@@ -90,11 +90,16 @@ const RecordTut = () => {
 
   useEffect(() => {
     const stream = new MediaStream();
+    setRecorderStream(stream);
+    console.log(stream);
 
     PeerBRef.current.ontrack = (ev) => {
       console.log("got new track", ev.track);
       stream.addTrack(ev.track);
-      setRecorderStream(stream);
+    };
+
+    PeerARef.current.ontrack = (ev) => {
+      console.log(ev.track);
     };
 
     PeerARef.current.onicecandidate = (ev) =>
@@ -239,15 +244,15 @@ const RecordTut = () => {
 
     drawFrame();
 
-    const VideoTrack = canvas.captureStream().getTracks()[0];
-    const sendersLength = PeerARef.current.getSenders().length;
+    // const VideoTrack = canvas.captureStream().getTracks()[0];
+    // const sendersLength = PeerARef.current.getSenders().length;
 
-    if (sendersLength >= 2) {
-      PeerARef.current
-        .getSenders()
-        .filter((sender) => sender.track.kind === "video")[0]
-        .replaceTrack(VideoTrack);
-    }
+    // if (sendersLength >= 2) {
+    //   PeerARef.current
+    //     .getSenders()
+    //     .filter((sender) => sender.track.kind === "video")[0]
+    //     .replaceTrack(VideoTrack);
+    // }
   }, [LocalStream, ScreenStream]);
 
   useEffect(() => {
@@ -273,15 +278,15 @@ const RecordTut = () => {
       screenGain.connect(destination);
     }
 
-    const AudioTrack = destination.stream.getTracks()[0];
-    const sendersLength = PeerARef.current.getSenders().length;
+    // const AudioTrack = destination.stream.getTracks()[0];
+    // const sendersLength = PeerARef.current.getSenders().length;
 
-    if (sendersLength >= 2) {
-      PeerARef.current
-        .getSenders()
-        .filter((sender) => sender.track.kind === "audio")[0]
-        .replaceTrack(AudioTrack);
-    }
+    // if (sendersLength >= 2) {
+    //   PeerARef.current
+    //     .getSenders()
+    //     .filter((sender) => sender.track.kind === "audio")[0]
+    //     .replaceTrack(AudioTrack);
+    // }
   }, [LocalStream, ScreenStream]);
 
   useEffect(() => {
