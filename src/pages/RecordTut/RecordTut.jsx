@@ -107,7 +107,11 @@ const RecordTut = () => {
       console.log("got new track", ev.track);
     };
 
-    pcA.onicecandidate = (ev) => pcB.addIceCandidate(ev.candidate);
+    pcA.onicecandidate = (ev) => {
+      if (ev.candidate) {
+        pcB.addIceCandidate(ev.candidate).catch(console.error);
+      }
+    };
 
     const connectPeers = async () => {
       const offer = await pcA.createOffer();
@@ -120,49 +124,63 @@ const RecordTut = () => {
     };
 
     connectPeers();
+
+    return () => {
+      pcA.close();
+      pcB.close();
+    };
   }, []);
 
   useEffect(() => {
     const startLocalStream = async () => {
       const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoInput = devices.find((device) => device.kind === "videoinput");
+      const audioInput = devices.find((device) => device.kind === "audioinput");
+
       const localStream = await navigator.mediaDevices.getUserMedia({
         video: {
-          deviceId: devices.filter((device) => device.kind === "videoinput")[0]
-            ?.deviceId,
+          deviceId: videoInput?.deviceId,
           width: { min: 640, ideal: 1920, max: 1920 },
           height: { min: 400, ideal: 1080 },
         },
         audio: {
-          deviceId: devices.filter((device) => device.kind === "audioinput")[0]
-            ?.deviceId,
+          deviceId: audioInput?.deviceId,
           echoCancellation: true,
           noiseSuppression: true,
           sampleRate: 44100,
         },
       });
 
+      setLocalStream(localStream);
+
       if (
-        (PeerA && PeerA.signalingState === "stable") ||
-        (PeerB && PeerB.signalingState === "stable")
+        PeerA &&
+        PeerA.signalingState === "stable" &&
+        PeerB &&
+        PeerB.signalingState === "stable"
       ) {
         localStream.getTracks().forEach((track) => {
           PeerA.addTrack(track, localStream);
           PeerB.addTrack(track, localStream);
         });
         console.log(PeerA, PeerB);
-        setLocalStream(localStream);
       }
 
       return () => {
-        localStream.getTracks().map((track) => track.stop());
+        localStream.getTracks().forEach((track) => track.stop());
       };
     };
 
-    startLocalStream();
-    return () => {
+    if (!LocalStream) {
       startLocalStream();
+    }
+
+    return () => {
+      if (LocalStream) {
+        LocalStream.getTracks().forEach((track) => track.stop());
+      }
     };
-  }, [PeerA, PeerB]);
+  }, [PeerA, PeerB, LocalStream]);
 
   useEffect(() => {
     localVideoRef.current.srcObject = LocalStream;
