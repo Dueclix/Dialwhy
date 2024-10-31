@@ -150,6 +150,7 @@ const RecordTut = () => {
           PeerA.addTrack(track, localStream);
           PeerB.addTrack(track, localStream);
         });
+        console.log(PeerA, PeerB);
         setLocalStream(localStream);
       }
 
