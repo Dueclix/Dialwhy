@@ -25,12 +25,12 @@ const RecordTut = () => {
   const PeerBRef = useRef(new RTCPeerConnection(RTCPeerConfig));
   const userId = JSON.parse(localStorage.getItem("user"))._id;
   const [RecorderStream, setRecorderStream] = useState(null);
+  const [mediaRecorder, setMediaRecorder] = useState(null);
   const [ScreenStream, setScreenStream] = useState(null);
   const [LocalStream, setLocalStream] = useState(null);
   const [MicToggle, setMicToggle] = useState(true);
   const [CamToggle, setCamToggle] = useState(true);
   const RecorderVideoRef = useRef(null);
-  const mediaRecorderRef = useRef(null);
   const RecorderChunksRef = useRef([]);
   const screenVideoRef = useRef(null);
   const localVideoRef = useRef(null);
@@ -42,10 +42,6 @@ const RecordTut = () => {
   const ShareScreen = async () => {
     try {
       const newState = !ScreenShareToggle;
-
-      // if(RecorderState === "recording" || RecorderState === "paused") {
-      //   mediaRecorder.stop();
-      // }
 
       if (newState) {
         const userMediaStream = await navigator.mediaDevices.getDisplayMedia({
@@ -73,24 +69,23 @@ const RecordTut = () => {
   };
 
   const ToggleRecording = () => {
-    if (mediaRecorderRef.current.state === "inactive") {
-      mediaRecorderRef.current.start();
+    if (mediaRecorder.state === "inactive") {
+      mediaRecorder.start();
     } else {
-      mediaRecorderRef.current.stop();
+      mediaRecorder.stop();
     }
-    console.log(mediaRecorderRef.current.state);
-    setRecorderState(mediaRecorderRef.current.state);
+    setRecorderState(mediaRecorder.state);
   };
 
   const PauseToggler = () => {
-    if (mediaRecorderRef.current.state === "recording") {
-      mediaRecorderRef.current.pause();
+    if (mediaRecorder.state === "recording") {
+      mediaRecorder.pause();
     } else {
-      mediaRecorderRef.current.state === "paused"
-        ? mediaRecorderRef.current.resume()
-        : mediaRecorderRef.current.start();
+      mediaRecorder.state === "paused"
+        ? mediaRecorder.resume()
+        : mediaRecorder.start();
     }
-    setRecorderState(mediaRecorderRef.current.state);
+    setRecorderState(mediaRecorder.state);
   };
 
   useEffect(() => {
@@ -151,7 +146,6 @@ const RecordTut = () => {
     return () => {
       startLocalStream();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -294,7 +288,7 @@ const RecordTut = () => {
   useEffect(() => {
     if (RecorderStream) {
       const recorder = new MediaRecorder(RecorderStream);
-      mediaRecorderRef.current = recorder;
+      setMediaRecorder(recorder);
 
       recorder.onstop = async () => {
         const blob = new Blob(RecorderChunksRef.current, { type: "video/mp4" });
@@ -397,7 +391,7 @@ const RecordTut = () => {
         <canvas ref={CanvasRef} className="w-0 h-0"></canvas>
       </div>
       <div className="position-fixed bottom-0 left-0 right-0 d-flex justify-content-center align-items-center text-light">
-        {mediaRecorderRef.current && (
+        {mediaRecorder && (
           <button
             className={`${
               RecorderState === "inactive" ? "bg-success" : "bg-danger"
@@ -412,7 +406,7 @@ const RecordTut = () => {
             )}
           </button>
         )}
-        {mediaRecorderRef.current &&
+        {mediaRecorder &&
           (RecorderState === "recording" || RecorderState === "paused") && (
             <button
               className="bg-success p-3 rounded-full mx-3"
