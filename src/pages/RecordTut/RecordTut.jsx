@@ -391,7 +391,7 @@ const RecordTut = () => {
         <canvas ref={CanvasRef} className="w-0 h-0"></canvas>
       </div>
       <div className="position-fixed bottom-0 left-0 right-0 d-flex justify-content-center align-items-center text-light">
-        {mediaRecorder && (
+        {mediaRecorder ? (
           <button
             className={`${
               RecorderState === "inactive" ? "bg-success" : "bg-danger"
@@ -405,6 +405,8 @@ const RecordTut = () => {
               <Stop />
             )}
           </button>
+        ) : (
+          console.log(mediaRecorder)
         )}
         {mediaRecorder &&
           (RecorderState === "recording" || RecorderState === "paused") && (
