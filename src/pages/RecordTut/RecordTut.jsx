@@ -97,14 +97,9 @@ const RecordTut = () => {
     const pcB = new RTCPeerConnection(RTCPeerConfig);
     setPeerB(pcB);
 
-    pcA.ontrack = (ev) => {
-      console.log(ev.track);
+    pcB.ontrack = (ev) => {
       stream.addTrack(ev.track);
       setRecorderStream(stream);
-    };
-
-    pcB.ontrack = (ev) => {
-      console.log("got new track", ev.track);
     };
 
     pcA.onicecandidate = (ev) => {
@@ -163,7 +158,17 @@ const RecordTut = () => {
           PeerA.addTrack(track, localStream);
           PeerB.addTrack(track, localStream);
         });
-        console.log(PeerA, PeerB);
+
+        try {
+          const peerStream = PeerA._shimmedLocalStreams;
+          const keys = Object.keys(peerStream);
+
+          const mediaStream = peerStream[keys[0]][0];
+
+          console.log(mediaStream.getTracks());
+        } catch (err) {
+          console.log(err);
+        }
       }
 
       return () => {
