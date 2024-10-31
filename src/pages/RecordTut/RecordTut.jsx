@@ -91,14 +91,14 @@ const RecordTut = () => {
   useEffect(() => {
     const stream = new MediaStream();
 
-    PeerBRef.current.addEventListener("track", (ev) => {
+    PeerBRef.current.ontrack = (ev) => {
+      console.log("got new track", ev.track);
       stream.addTrack(ev.track);
       setRecorderStream(stream);
-    });
+    };
 
-    PeerARef.current.addEventListener("icecandidate", (ev) =>
-      PeerBRef.current.addIceCandidate(ev.candidate)
-    );
+    PeerARef.current.onicecandidate = (ev) =>
+      PeerBRef.current.addIceCandidate(ev.candidate);
   }, []);
 
   useEffect(() => {
@@ -130,11 +130,10 @@ const RecordTut = () => {
         await PeerARef.current.setRemoteDescription(answer);
       }
 
-      if (PeerARef.current.getSenders().length === 0) {
-        localStream
-          .getTracks()
-          .map((track) => PeerARef.current.addTrack(track, localStream));
-      }
+      localStream
+        .getTracks()
+        .map((track) => PeerARef.current.addTrack(track, localStream));
+      console.log("adding tracks in peer connection.");
       setLocalStream(localStream);
 
       return () => {
@@ -285,22 +284,10 @@ const RecordTut = () => {
     }
   }, [LocalStream, ScreenStream]);
 
-  useEffect(
-    () =>
-      console.log(
-        mediaRecorder,
-        RecorderStream,
-        PeerARef.current,
-        PeerBRef.current
-      ),
-    [mediaRecorder, RecorderStream]
-  );
-
   useEffect(() => {
     if (RecorderStream) {
       const recorder = new MediaRecorder(RecorderStream);
       setMediaRecorder(recorder);
-      console.log(recorder);
 
       recorder.onstop = async () => {
         const blob = new Blob(RecorderChunksRef.current, { type: "video/mp4" });
