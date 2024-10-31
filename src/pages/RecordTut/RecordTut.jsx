@@ -21,8 +21,6 @@ const RTCPeerConfig = {
 const RecordTut = () => {
   const [ScreenShareToggle, setScreenShareToggle] = useState(false);
   const [RecorderState, setRecorderState] = useState("inactive");
-  const PeerARef = useRef(new RTCPeerConnection(RTCPeerConfig));
-  const PeerBRef = useRef(new RTCPeerConnection(RTCPeerConfig));
   const userId = JSON.parse(localStorage.getItem("user"))._id;
   const [RecorderStream, setRecorderStream] = useState(null);
   const [mediaRecorder, setMediaRecorder] = useState(null);
@@ -30,6 +28,8 @@ const RecordTut = () => {
   const [LocalStream, setLocalStream] = useState(null);
   const [MicToggle, setMicToggle] = useState(true);
   const [CamToggle, setCamToggle] = useState(true);
+  const [PeerA, setPeerA] = useState(null);
+  const [PeerB, setPeerB] = useState(null);
   const RecorderVideoRef = useRef(null);
   const RecorderChunksRef = useRef([]);
   const screenVideoRef = useRef(null);
@@ -88,22 +88,28 @@ const RecordTut = () => {
     setRecorderState(mediaRecorder.state);
   };
 
-  useEffect(() => {
+  useEffect(()=>{
     const stream = new MediaStream();
-    
-    PeerBRef.current.ontrack = (ev) => {
-      console.log("got new track", ev.track);
-    };
-    
-    PeerARef.current.ontrack = (ev) => {
+
+    const pcA = new RTCPeerConnection(RTCPeerConfig);
+    setPeerA(pcA);
+
+    const pcB = new RTCPeerConnection(RTCPeerConfig)
+    setPeerB(pcB);
+
+    pcA.ontrack = (ev) => {
+      console.log(ev.track);
       stream.addTrack(ev.track);
       setRecorderStream(stream);
-      console.log(ev.track);
+    }
+    
+    pcB.ontrack = (ev) => {
+      console.log("got new track", ev.track);
     };
 
-    PeerARef.current.onicecandidate = (ev) =>
-      PeerBRef.current.addIceCandidate(ev.candidate);
-  }, []);
+    pcA.onicecandidate = (ev) =>
+      pcB.addIceCandidate(ev.candidate);
+  }, [])
 
   useEffect(() => {
     const startLocalStream = async () => {
@@ -124,18 +130,18 @@ const RecordTut = () => {
         },
       });
 
-      if (PeerARef.current.signalingState !== "have-remote-offer") {
-        const offer = await PeerARef.current.createOffer();
-        await PeerARef.current.setLocalDescription(offer);
-        await PeerBRef.current.setRemoteDescription(offer);
+      if (PeerA && PeerB) {
+        const offer = await PeerA.createOffer();
+        await PeerA.setLocalDescription(offer);
+        await PeerB.setRemoteDescription(offer);
 
-        const answer = await PeerBRef.current.createAnswer();
-        await PeerBRef.current.setLocalDescription(answer);
-        await PeerARef.current.setRemoteDescription(answer);
+        const answer = await PeerB.createAnswer();
+        await PeerB.setLocalDescription(answer);
+        await PeerA.setRemoteDescription(answer);
         
         localStream
           .getTracks()
-          .map((track) => PeerBRef.current.addTrack(track, localStream));
+          .map((track) => PeerB.addTrack(track, localStream));
         setLocalStream(localStream);
       }
 
@@ -148,12 +154,12 @@ const RecordTut = () => {
     return () => {
       startLocalStream();
     };
-  }, []);
+  }, [PeerA, PeerB]);
 
   useEffect(() => {
     localVideoRef.current.srcObject = LocalStream;
-    console.log(LocalStream, PeerARef.current, PeerBRef.current);
-  }, [LocalStream]);
+    console.log(LocalStream, PeerA, PeerB);
+  }, [LocalStream, PeerA, PeerB]);
 
   useEffect(() => {
     if (ScreenStream) {
