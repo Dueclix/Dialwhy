@@ -311,7 +311,6 @@ const RecordTut = () => {
 
       recorder.onstop = async () => {
         const blob = new Blob(RecorderChunksRef.current, { type: "video/mp4" });
-        console.log(RecorderChunksRef.current, blob);
 
         const currentDate = new Date();
         const formattedDate = currentDate
@@ -400,13 +399,13 @@ const RecordTut = () => {
       ></video>
       <div>
         <video
-          // className="d-none"
+          className="d-none"
           disablePictureInPicture
           disableRemotePlayback
           ref={RecorderVideoRef}
           playsInline
           autoPlay
-          // muted
+          muted
         ></video>
         <canvas ref={CanvasRef} className="w-0 h-0"></canvas>
       </div>
