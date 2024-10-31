@@ -88,28 +88,39 @@ const RecordTut = () => {
     setRecorderState(mediaRecorder.state);
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     const stream = new MediaStream();
 
     const pcA = new RTCPeerConnection(RTCPeerConfig);
     setPeerA(pcA);
 
-    const pcB = new RTCPeerConnection(RTCPeerConfig)
+    const pcB = new RTCPeerConnection(RTCPeerConfig);
     setPeerB(pcB);
 
     pcA.ontrack = (ev) => {
       console.log(ev.track);
       stream.addTrack(ev.track);
       setRecorderStream(stream);
-    }
-    
+    };
+
     pcB.ontrack = (ev) => {
       console.log("got new track", ev.track);
     };
 
-    pcA.onicecandidate = (ev) =>
-      pcB.addIceCandidate(ev.candidate);
-  }, [])
+    pcA.onicecandidate = (ev) => pcB.addIceCandidate(ev.candidate);
+
+    const connectPeers = async () => {
+      const offer = await pcA.createOffer();
+      await pcA.setLocalDescription(offer);
+      await pcB.setRemoteDescription(offer);
+
+      const answer = await pcB.createAnswer();
+      await pcB.setLocalDescription(answer);
+      await pcA.setRemoteDescription(answer);
+    };
+
+    connectPeers();
+  }, []);
 
   useEffect(() => {
     const startLocalStream = async () => {
@@ -130,18 +141,11 @@ const RecordTut = () => {
         },
       });
 
-      if (PeerA && PeerB) {
-        const offer = await PeerA.createOffer();
-        await PeerA.setLocalDescription(offer);
-        await PeerB.setRemoteDescription(offer);
-
-        const answer = await PeerB.createAnswer();
-        await PeerB.setLocalDescription(answer);
-        await PeerA.setRemoteDescription(answer);
-        
+      if (PeerB && PeerB.signalingState === "stable") {
         localStream
           .getTracks()
           .map((track) => PeerB.addTrack(track, localStream));
+          console.log(PeerB);
         setLocalStream(localStream);
       }
 
@@ -154,7 +158,7 @@ const RecordTut = () => {
     return () => {
       startLocalStream();
     };
-  }, [PeerA, PeerB]);
+  }, [PeerB]);
 
   useEffect(() => {
     localVideoRef.current.srcObject = LocalStream;
