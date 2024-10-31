@@ -90,15 +90,14 @@ const RecordTut = () => {
 
   useEffect(() => {
     const stream = new MediaStream();
-    setRecorderStream(stream);
-    console.log(stream);
-
+    
     PeerBRef.current.ontrack = (ev) => {
       console.log("got new track", ev.track);
-      stream.addTrack(ev.track);
     };
-
+    
     PeerARef.current.ontrack = (ev) => {
+      stream.addTrack(ev.track);
+      setRecorderStream(stream);
       console.log(ev.track);
     };
 
@@ -133,13 +132,12 @@ const RecordTut = () => {
         const answer = await PeerBRef.current.createAnswer();
         await PeerBRef.current.setLocalDescription(answer);
         await PeerARef.current.setRemoteDescription(answer);
+        
+        localStream
+          .getTracks()
+          .map((track) => PeerBRef.current.addTrack(track, localStream));
+        setLocalStream(localStream);
       }
-
-      localStream
-        .getTracks()
-        .map((track) => PeerARef.current.addTrack(track, localStream));
-      console.log("adding tracks in peer connection.");
-      setLocalStream(localStream);
 
       return () => {
         localStream.getTracks().map((track) => track.stop());
@@ -154,6 +152,7 @@ const RecordTut = () => {
 
   useEffect(() => {
     localVideoRef.current.srcObject = LocalStream;
+    console.log(LocalStream, PeerARef.current, PeerBRef.current);
   }, [LocalStream]);
 
   useEffect(() => {
