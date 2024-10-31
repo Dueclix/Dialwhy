@@ -289,6 +289,7 @@ const RecordTut = () => {
     if (RecorderStream) {
       const recorder = new MediaRecorder(RecorderStream);
       setMediaRecorder(recorder);
+      console.log(recorder);
 
       recorder.onstop = async () => {
         const blob = new Blob(RecorderChunksRef.current, { type: "video/mp4" });
@@ -388,10 +389,11 @@ const RecordTut = () => {
           autoPlay
           muted
         ></video>
+        {mediaRecorder?.state}
         <canvas ref={CanvasRef} className="w-0 h-0"></canvas>
       </div>
       <div className="position-fixed bottom-0 left-0 right-0 d-flex justify-content-center align-items-center text-light">
-        {mediaRecorder ? (
+        {mediaRecorder && (
           <button
             className={`${
               RecorderState === "inactive" ? "bg-success" : "bg-danger"
@@ -405,8 +407,6 @@ const RecordTut = () => {
               <Stop />
             )}
           </button>
-        ) : (
-          console.log(mediaRecorder)
         )}
         {mediaRecorder &&
           (RecorderState === "recording" || RecorderState === "paused") && (
