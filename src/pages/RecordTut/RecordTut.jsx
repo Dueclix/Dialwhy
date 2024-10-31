@@ -108,7 +108,6 @@ const RecordTut = () => {
     };
 
     pcA.onicecandidate = (ev) => pcB.addIceCandidate(ev.candidate);
-    pcB.onicecandidate = (ev) => pcA.addIceCandidate(ev.candidate);
 
     const connectPeers = async () => {
       const offer = await pcA.createOffer();
