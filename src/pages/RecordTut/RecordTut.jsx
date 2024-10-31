@@ -33,8 +33,8 @@ const RecordTut = () => {
   const screenVideoRef = useRef(null);
   const localVideoRef = useRef(null);
   const CanvasRef = useRef(null);
-  const peerARef = useRef(null); 
-  const peerBRef = useRef(null); 
+  const peerARef = useRef(null);
+  const peerBRef = useRef(null);
   const ws = socket;
 
   ws.connect();
@@ -127,18 +127,18 @@ const RecordTut = () => {
   }, [LocalStream]);
 
   useEffect(() => {
-    if(!LocalStream) return;
+    if (!LocalStream) return;
 
-    const peering = async ()=>{
+    const peering = async () => {
       const stream = new MediaStream();
       localVideoRef.current.srcObject = LocalStream;
 
-      peerARef.current = new RTCPeerConnection();
-      peerBRef.current = new RTCPeerConnection();
+      peerARef.current = new RTCPeerConnection(RTCPeerConfig);
+      peerBRef.current = new RTCPeerConnection(RTCPeerConfig);
 
-      LocalStream.getTracks().forEach(track => {
-        peerARef.current.addTrack(track, LocalStream);
-      });
+      LocalStream.getTracks().forEach((track) =>
+        peerARef.current.addTrack(track, LocalStream)
+      );
 
       peerBRef.current.ontrack = (event) => {
         stream.addTrack(event.track);
@@ -164,7 +164,7 @@ const RecordTut = () => {
       const answer = await peerBRef.current.createAnswer();
       await peerBRef.current.setLocalDescription(answer);
       await peerARef.current.setRemoteDescription(answer);
-    }
+    };
 
     peering();
   }, [LocalStream]);
@@ -257,15 +257,16 @@ const RecordTut = () => {
 
     drawFrame();
 
-    // const VideoTrack = canvas.captureStream().getTracks()[0];
-    // const sendersLength = PeerA.getSenders().length;
+    const VideoTrack = canvas.captureStream().getTracks()[0];
+    const sendersLength =
+      peerARef && peerARef.current ? peerARef.current.getSenders().length : 0;
 
-    // if (sendersLength >= 2) {
-    //   PeerA
-    //     .getSenders()
-    //     .filter((sender) => sender.track.kind === "video")[0]
-    //     .replaceTrack(VideoTrack);
-    // }
+    if (sendersLength >= 2) {
+      peerARef.current
+        .getSenders()
+        .filter((sender) => sender.track.kind === "video")[0]
+        .replaceTrack(VideoTrack);
+    }
   }, [LocalStream, ScreenStream]);
 
   useEffect(() => {
@@ -291,15 +292,16 @@ const RecordTut = () => {
       screenGain.connect(destination);
     }
 
-    // const AudioTrack = destination.stream.getTracks()[0];
-    // const sendersLength = PeerA.getSenders().length;
+    const AudioTrack = destination.stream.getTracks()[0];
+    const sendersLength =
+      peerARef && peerARef.current ? peerARef.current.getSenders().length : 0;
 
-    // if (sendersLength >= 2) {
-    //   PeerA
-    //     .getSenders()
-    //     .filter((sender) => sender.track.kind === "audio")[0]
-    //     .replaceTrack(AudioTrack);
-    // }
+    if (sendersLength >= 2) {
+      peerARef.current
+        .getSenders()
+        .filter((sender) => sender.track.kind === "audio")[0]
+        .replaceTrack(AudioTrack);
+    }
   }, [LocalStream, ScreenStream]);
 
   useEffect(() => {
@@ -309,6 +311,7 @@ const RecordTut = () => {
 
       recorder.onstop = async () => {
         const blob = new Blob(RecorderChunksRef.current, { type: "video/mp4" });
+        console.log(RecorderChunksRef.current, blob);
 
         const currentDate = new Date();
         const formattedDate = currentDate
@@ -397,15 +400,14 @@ const RecordTut = () => {
       ></video>
       <div>
         <video
-          className="d-none"
+          // className="d-none"
           disablePictureInPicture
           disableRemotePlayback
           ref={RecorderVideoRef}
           playsInline
           autoPlay
-          muted
+          // muted
         ></video>
-        {mediaRecorder?.state}
         <canvas ref={CanvasRef} className="w-0 h-0"></canvas>
       </div>
       <div className="position-fixed bottom-0 left-0 right-0 d-flex justify-content-center align-items-center text-light">
