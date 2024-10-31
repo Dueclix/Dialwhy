@@ -108,6 +108,7 @@ const RecordTut = () => {
     };
 
     pcA.onicecandidate = (ev) => pcB.addIceCandidate(ev.candidate);
+    pcB.onicecandidate = (ev) => pcA.addIceCandidate(ev.candidate);
 
     const connectPeers = async () => {
       const offer = await pcA.createOffer();
@@ -141,11 +142,14 @@ const RecordTut = () => {
         },
       });
 
-      if (PeerB && PeerB.signalingState === "stable") {
-        localStream
-          .getTracks()
-          .map((track) => PeerB.addTrack(track, localStream));
-          console.log(PeerB);
+      if (
+        (PeerA && PeerA.signalingState === "stable") ||
+        (PeerB && PeerB.signalingState === "stable")
+      ) {
+        localStream.getTracks().forEach((track) => {
+          PeerA.addTrack(track, localStream);
+          PeerB.addTrack(track, localStream);
+        });
         setLocalStream(localStream);
       }
 
@@ -158,12 +162,11 @@ const RecordTut = () => {
     return () => {
       startLocalStream();
     };
-  }, [PeerB]);
+  }, [PeerA, PeerB]);
 
   useEffect(() => {
     localVideoRef.current.srcObject = LocalStream;
-    console.log(LocalStream, PeerA, PeerB);
-  }, [LocalStream, PeerA, PeerB]);
+  }, [LocalStream]);
 
   useEffect(() => {
     if (ScreenStream) {
