@@ -155,9 +155,11 @@ const RecordTut = () => {
         PeerB.signalingState === "stable"
       ) {
         localStream.getTracks().forEach((track) => {
-          PeerA.addTrack(track, localStream);
-          PeerB.addTrack(track, localStream);
+          PeerA.addTrack(track);
+          PeerB.addTrack(track);
         });
+
+        console.log(PeerA, PeerB);
       }
 
       return () => {
@@ -176,20 +178,20 @@ const RecordTut = () => {
     };
   }, [PeerA, PeerB, LocalStream]);
 
-  useEffect(() => {
-    if (!(PeerA && PeerA?._shimmedLocalStreams)) return;
+  // useEffect(() => {
+  //   if (!(PeerA && PeerA?._shimmedLocalStreams)) return;
 
-    try {
-      const peerStream = PeerA._shimmedLocalStreams;
-      const keys = Object.keys(peerStream);
+  //   try {
+  //     const peerStream = PeerA._shimmedLocalStreams;
+  //     const keys = Object.keys(peerStream);
 
-      const mediaStream = peerStream[keys[0]][0];
+  //     const mediaStream = peerStream[keys[0]][0];
 
-      console.log(mediaStream.getTracks());
-    } catch (err) {
-      console.log(err);
-    }
-  }, [PeerA, PeerA?._shimmedLocalStreams]);
+  //     console.log(mediaStream.getTracks());
+  //   } catch (err) {
+  //     console.log(err);
+  //   }
+  // }, [PeerA, PeerA?._shimmedLocalStreams]);
 
   useEffect(() => {
     localVideoRef.current.srcObject = LocalStream;
@@ -283,16 +285,16 @@ const RecordTut = () => {
 
     drawFrame();
 
-    const VideoTrack = canvas.captureStream().getTracks()[0];
-    const sendersLength = PeerA.getSenders().length;
+    // const VideoTrack = canvas.captureStream().getTracks()[0];
+    // const sendersLength = PeerA.getSenders().length;
 
-    if (sendersLength >= 2) {
-      PeerA
-        .getSenders()
-        .filter((sender) => sender.track.kind === "video")[0]
-        .replaceTrack(VideoTrack);
-    }
-  }, [PeerA, LocalStream, ScreenStream]);
+    // if (sendersLength >= 2) {
+    //   PeerA
+    //     .getSenders()
+    //     .filter((sender) => sender.track.kind === "video")[0]
+    //     .replaceTrack(VideoTrack);
+    // }
+  }, [LocalStream, ScreenStream]);
 
   useEffect(() => {
     if (!LocalStream) return;
@@ -317,16 +319,16 @@ const RecordTut = () => {
       screenGain.connect(destination);
     }
 
-    const AudioTrack = destination.stream.getTracks()[0];
-    const sendersLength = PeerA.getSenders().length;
+    // const AudioTrack = destination.stream.getTracks()[0];
+    // const sendersLength = PeerA.getSenders().length;
 
-    if (sendersLength >= 2) {
-      PeerA
-        .getSenders()
-        .filter((sender) => sender.track.kind === "audio")[0]
-        .replaceTrack(AudioTrack);
-    }
-  }, [PeerA, LocalStream, ScreenStream]);
+    // if (sendersLength >= 2) {
+    //   PeerA
+    //     .getSenders()
+    //     .filter((sender) => sender.track.kind === "audio")[0]
+    //     .replaceTrack(AudioTrack);
+    // }
+  }, [LocalStream, ScreenStream]);
 
   useEffect(() => {
     if (RecorderStream) {
