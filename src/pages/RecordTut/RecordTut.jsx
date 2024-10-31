@@ -285,6 +285,17 @@ const RecordTut = () => {
     }
   }, [LocalStream, ScreenStream]);
 
+  useEffect(
+    () =>
+      console.log(
+        mediaRecorder,
+        RecorderStream,
+        PeerARef.current,
+        PeerBRef.current
+      ),
+    [mediaRecorder, RecorderStream]
+  );
+
   useEffect(() => {
     if (RecorderStream) {
       const recorder = new MediaRecorder(RecorderStream);
