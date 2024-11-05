@@ -141,26 +141,9 @@ const RecordTut = () => {
             type: "video/webm",
           });
 
-          const currentDate = new Date();
-          const formattedDate = currentDate
-            .toISOString()
-            .replace(/:/g, "-")
-            .split(".")[0]
-            .replace("T", "_");
-
-          const filename = `dialwhy-tutorial-recording_${formattedDate}.webm`;
-
           const formData = new FormData();
-          formData.append("video", blob, filename);
+          formData.append("video", blob);
           formData.append("userId", userId);
-          formData.append(
-            "timing",
-            currentDate.toLocaleTimeString([], {
-              hour12: true,
-              hour: "2-digit",
-              minute: "2-digit",
-            })
-          );
 
           const result = await axios.post(
             `${appServer}/upload-tutorial`,
