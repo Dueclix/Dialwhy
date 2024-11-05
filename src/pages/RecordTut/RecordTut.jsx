@@ -44,18 +44,21 @@ const RecordTut = () => {
       const newState = !ScreenShareToggle;
 
       if (newState) {
-        const userMediaStream = await navigator.mediaDevices.getDisplayMedia({
-          video: true,
-          audio: true,
-        });
-        setScreenStream(userMediaStream);
-
-        userMediaStream.getTracks().map((track) =>
-          track.addEventListener("ended", () => {
-            setScreenShareToggle(false);
-            setScreenStream(null);
+        navigator.mediaDevices
+          .getDisplayMedia({
+            video: true,
+            audio: true,
           })
-        );
+          .then((userMediaStream) => {
+            setScreenStream(userMediaStream);
+
+            userMediaStream.getTracks().map((track) =>
+              track.addEventListener("ended", () => {
+                setScreenShareToggle(false);
+                setScreenStream(null);
+              })
+            );
+          });
       } else {
         const userMediaStream = ScreenStream;
         userMediaStream.getTracks().map((track) => track.stop());
@@ -147,23 +150,23 @@ const RecordTut = () => {
 
       peerARef.current.onicecandidate = (event) => {
         if (event.candidate) {
-          peerBRef.current.addIceCandidate(event.candidate);
-        }
-      };
-
-      peerBRef.current.onicecandidate = (event) => {
-        if (event.candidate) {
-          peerARef.current.addIceCandidate(event.candidate);
+          peerBRef.current.addIceCandidate(event.candidate).catch((err) => {
+            console.log(peerARef.current, peerBRef.current);
+          });
         }
       };
 
       const offer = await peerARef.current.createOffer();
       await peerARef.current.setLocalDescription(offer);
-      await peerBRef.current.setRemoteDescription(offer);
+      await peerBRef.current.setRemoteDescription(
+        peerARef.current.localDescription
+      );
 
       const answer = await peerBRef.current.createAnswer();
       await peerBRef.current.setLocalDescription(answer);
-      await peerARef.current.setRemoteDescription(answer);
+      await peerARef.current.setRemoteDescription(
+        peerBRef.current.localDescription
+      );
     };
 
     peering();
