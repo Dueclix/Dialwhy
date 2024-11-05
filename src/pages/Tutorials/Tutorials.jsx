@@ -1,21 +1,32 @@
 import AccountLayout from "../../Components/Partials/AccountLayout";
+import { Delete, Download } from "@mui/icons-material";
 import Layout from "../../Components/Partials/Layout";
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { appServer } from "../../utils";
-import { Delete, Download } from "@mui/icons-material";
+import axios from "axios";
 
 const Tutorials = () => {
   const userId = JSON.parse(localStorage.getItem("user"))._id;
   const [tuts, setTuts] = useState([]);
 
-  const DownloadRecording = (filename, videoUrl) => {
+  const DownloadRecording = async (filename) => {
+    const response = await axios.get(`${appServer}/recording/${filename}`, {
+      responseType: "blob",
+    });
+
+    const blob = new Blob([response.data], {
+      type: response.headers["content-type"],
+    });
+
     const link = document.createElement("a");
-    link.href = videoUrl;
+    link.href = window.URL.createObjectURL(blob);
     link.download = filename;
+
     document.body.appendChild(link);
     link.click();
+
     document.body.removeChild(link);
+    window.URL.revokeObjectURL(link.href);
   };
 
   const DeleteRecording = async (filename) => {
@@ -46,7 +57,6 @@ const Tutorials = () => {
         subTitle="Manage your tutorial."
       >
         <div
-          key={"Tutorials"}
           className="w-100 pt-4"
           style={{ height: "70vh" }}
         >
@@ -62,49 +72,45 @@ const Tutorials = () => {
             </a>
           </div>
           <ul className="my-3 w-100">
-            {tuts.map((tut) => {
-              const blob = new Blob([new Uint8Array(tut.fileData.data)], {
-                type: "video/mp4",
-              });
-              const videoUrl = URL.createObjectURL(blob);
-              return (
-                <li
-                  key={tut.id}
-                  className="w-100 d-flex align-items-start justify-content-center px-1 py-2"
-                >
-                  <video src={videoUrl} className="w-25 rounded"></video>
-                  <div className="w-50 px-3">
-                    <div>
-                      <p
-                        className="text-dark text-ellipsis overflow-hidden whitespace-nowrap"
-                        style={{ fontSize: "16px" }}
-                      >
-                        {tut.filePath}
-                      </p>
-                      <span style={{ fontSize: "12px" }}>{tut.timing}</span>
-                    </div>
-                    <div className="m-0 p-0 mt-3">
-                      <button
-                        className="my-0 mx-1 p-2 bg-primary rounded text-white"
-                        style={{ fontSize: "18px" }}
-                        onClick={() =>
-                          DownloadRecording(tut.filePath, videoUrl)
-                        }
-                      >
-                        <Download fontSize="inherit" />
-                      </button>
-                      <button
-                        className="my-0 mx-1 p-2 bg-danger rounded text-white"
-                        style={{ fontSize: "18px" }}
-                        onClick={() => DeleteRecording(tut.filePath)}
-                      >
-                        <Delete fontSize="inherit" />
-                      </button>
-                    </div>
+            {tuts.map((tut) => (
+              <li
+                key={tut.id}
+                className="w-100 d-flex align-items-start justify-content-center px-1 py-2"
+              >
+                <img
+                  src={`${appServer}/thumbnail/${tut.thumbnail}`}
+                  alt={tut.thumbnail}
+                  className="w-25 rounded"
+                />
+                <div className="w-50 px-3">
+                  <div>
+                    <p
+                      className="text-dark text-ellipsis overflow-hidden whitespace-nowrap"
+                      style={{ fontSize: "16px" }}
+                    >
+                      {tut.filePath}
+                    </p>
+                    <span style={{ fontSize: "12px" }}>{tut.timing}</span>
                   </div>
-                </li>
-              );
-            })}
+                  <div className="m-0 p-0 mt-3">
+                    <button
+                      className="my-0 mx-1 p-2 bg-primary rounded text-white"
+                      style={{ fontSize: "18px" }}
+                      onClick={() => DownloadRecording(tut.filePath)}
+                    >
+                      <Download fontSize="inherit" />
+                    </button>
+                    <button
+                      className="my-0 mx-1 p-2 bg-danger rounded text-white"
+                      style={{ fontSize: "18px" }}
+                      onClick={() => DeleteRecording(tut.filePath)}
+                    >
+                      <Delete fontSize="inherit" />
+                    </button>
+                  </div>
+                </div>
+              </li>
+            ))}
           </ul>
         </div>
       </AccountLayout>
