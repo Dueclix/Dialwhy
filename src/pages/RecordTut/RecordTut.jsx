@@ -138,7 +138,7 @@ const RecordTut = () => {
 
         recorder.addEventListener("stop", async () => {
           const blob = new Blob([RecorderChunksRef.current], {
-            type: "video/mp4",
+            type: "video/webm",
           });
 
           const currentDate = new Date();
@@ -148,7 +148,7 @@ const RecordTut = () => {
             .split(".")[0]
             .replace("T", "_");
 
-          const filename = `dialwhy-tutorial-recording_${formattedDate}.mp4`;
+          const filename = `dialwhy-tutorial-recording_${formattedDate}.webm`;
 
           const formData = new FormData();
           formData.append("video", blob, filename);
