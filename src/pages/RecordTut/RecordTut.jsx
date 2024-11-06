@@ -182,21 +182,39 @@ const RecordTut = () => {
 
       if (LocalStream) {
         try {
-          LocalStream.getTracks().forEach((track) => {
-            peerARef.current.addTrack(track, LocalStream);
-          });
-        } catch(err) {
-          console.log(err);
+          if (peerARef.current.signalingState === "stable") {
+            LocalStream.getTracks().forEach((track) => {
+              peerARef.current.addTrack(track, LocalStream);
+            });
+          } else {
+            console.log(peerARef);
+          }
+        } catch (err) {
+          console.log(
+            err,
+            peerARef.current,
+            peerARef.current.getSenders(),
+            LocalStream
+          );
         }
       }
 
       if (ScreenStream) {
         try {
-          ScreenStream.getTracks().forEach((track) => {
-            peerARef.current.addTrack(track, ScreenStream);
-          });
-        } catch(err) {
-          console.log(err);
+          if (peerARef.current.signalingState === "stable") {
+            ScreenStream.getTracks().forEach((track) => {
+              peerARef.current.addTrack(track, ScreenStream);
+            });
+          } else {
+            console.log(peerARef);
+          }
+        } catch (err) {
+          console.log(
+            err,
+            peerARef.current,
+            peerARef.current.getSenders(),
+            ScreenStream
+          );
         }
       }
 
@@ -205,7 +223,7 @@ const RecordTut = () => {
           CanvasStream.getTracks().map((track) =>
             peerBRef.current.addTrack(track, CanvasStream)
           );
-        } catch(err) {
+        } catch (err) {
           console.log(err);
         }
       }
