@@ -918,14 +918,7 @@ function VC() {
           );
           formData.append("senderId", userId);
           formData.append("receiverId", CurrentChat._id);
-          formData.append(
-            "timming",
-            currentDate.toLocaleTimeString([], {
-              hour12: true,
-              hour: "2-digit",
-              minute: "2-digit",
-            })
-          );
+          formData.append("timeStamp", currentDate.toISOString());
 
           setRecordedVideo(null);
 
@@ -945,11 +938,7 @@ function VC() {
                 senderId: userId,
                 receiverId: CurrentChat._id,
                 filePath: videoFile.replace("video-", ""),
-                timming: currentDate.toLocaleTimeString([], {
-                  hour12: true,
-                  hour: "2-digit",
-                  minute: "2-digit",
-                }),
+                timeStamp: currentDate.toISOString(),
                 seen: true,
                 type: "recording",
               };
@@ -1065,7 +1054,7 @@ function VC() {
       senderId,
       receiverId,
       message,
-      timming,
+      timeStamp,
       seen,
     }) => {
       if (senderId === userId || receiverId === userId) {
@@ -1081,7 +1070,7 @@ function VC() {
             senderId,
             receiverId,
             message,
-            timming,
+            timeStamp,
             seen,
             type: "message",
           },
@@ -1108,7 +1097,7 @@ function VC() {
       senderId,
       receiverId,
       filePath,
-      timming,
+      timeStamp,
       seen,
     }) => {
       if (senderId === userId || receiverId === userId) {
@@ -1124,7 +1113,7 @@ function VC() {
             senderId,
             receiverId,
             filePath,
-            timming,
+            timeStamp,
             seen,
             type: "recording",
           },
@@ -1239,8 +1228,13 @@ function VC() {
           style={{ width: "22vw", height: "100%" }}
         >
           <div className="chatbox-body w-100" style={{ height: "90%" }}>
-            {MessagesList.map((Message) => {
+            {MessagesList.map((Message, index) => {
               const isSender = Message.senderId === userId ? false : true;
+
+              const prevMessageTime =
+                MessagesList[index - 1] &&
+                new Date(MessagesList[index - 1].timeStamp);
+              const currMessageTime = new Date(Message.timeStamp);
 
               return Message.type === "message" ? (
                 <MessageBox
@@ -1248,6 +1242,7 @@ function VC() {
                   key={Message._id}
                   Message={Message}
                   userId={userId}
+                  prevMessageTime={prevMessageTime}
                   onEdit={() => setEditId(Message._id)}
                   onDelete={() => {
                     deleteMessage(Message._id);
@@ -1255,41 +1250,64 @@ function VC() {
                 />
               ) : (
                 Message.type === "recording" && (
-                  <div
-                    key={Message._id}
-                    className={`d-flex align-items-center ${
-                      isSender ? "justify-content-start" : "justify-content-end"
-                    } px-3`}
-                  >
+                  <div key={Message._id}>
+                    {!prevMessageTime ? (
+                      <div className="d-flex justify-content-center align-items-center">
+                        <span className="bg-white text-muted rounded py-1 px-2">
+                          {currMessageTime.toLocaleDateString()}
+                        </span>
+                      </div>
+                    ) : (
+                      currMessageTime.toLocaleDateString() !==
+                        prevMessageTime.toLocaleDateString() && (
+                        <div className="d-flex justify-content-center align-items-center">
+                          <span className="bg-white text-muted rounded py-1 px-2">
+                            {currMessageTime.toLocaleDateString()}
+                          </span>
+                        </div>
+                      )
+                    )}
                     <div
-                      className="position-relative my-2 rounded px-2 pt-2 bg-white"
-                      style={{ maxWidth: "250px" }}
+                      className={`d-flex justify-content-center flex-column ${
+                        isSender ? "align-items-start" : "align-items-end"
+                      } px-3 my-2`}
                     >
-                      <p className="bg-light text-dark rounded p-2 text-ellipsis overflow-hidden whitespace-nowrap">
-                        {Message.filePath}
-                      </p>
-                      <div className="d-flex justify-content-start align-items-center pt-1">
-                        <button
-                          className="bg-info text-light px-3 py-2 ml-0 mr-2 rounded"
-                          onClick={() =>
-                            Message.filePath &&
-                            downloadRecording(Message.filePath)
-                          }
-                        >
-                          Download
-                        </button>
-                        {Message.senderId === userId && (
+                      <div
+                        className="position-relative rounded px-2 pt-2 bg-white"
+                        style={{ maxWidth: "250px" }}
+                      >
+                        <p className="bg-light text-dark rounded p-2 text-ellipsis overflow-hidden whitespace-nowrap">
+                          {Message.filePath}
+                        </p>
+                        <div className="d-flex justify-content-start align-items-center pt-1">
                           <button
-                            className="bg-info text-light px-3 py-2 rounded"
+                            className="bg-info text-light px-3 py-2 ml-0 mr-2 rounded"
                             onClick={() =>
                               Message.filePath &&
-                              deleteRecording(Message.filePath)
+                              downloadRecording(Message.filePath)
                             }
                           >
-                            Delete
+                            Download
                           </button>
-                        )}
+                          {Message.senderId === userId && (
+                            <button
+                              className="bg-info text-light px-3 py-2 rounded"
+                              onClick={() =>
+                                Message.filePath &&
+                                deleteRecording(Message.filePath)
+                              }
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </div>
                       </div>
+                      <span style={{ fontSize: "10px" }} className="px-1">
+                        {new Date(Message.timeStamp).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
                     </div>
                   </div>
                 )

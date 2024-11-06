@@ -11,7 +11,8 @@ import axios from "axios";
 import "./Chat.css";
 
 const Chat = () => {
-  const userImage = JSON.parse(localStorage.getItem("user"))?.image?.url || "/Profile.png";
+  const userImage =
+    JSON.parse(localStorage.getItem("user"))?.image?.url || "/Profile.png";
   const userName = JSON.parse(localStorage.getItem("user")).name;
   const userId = JSON.parse(localStorage.getItem("user"))._id;
   const [MessagesList, setMessagesList] = useState([]);
@@ -42,16 +43,10 @@ const Chat = () => {
   };
 
   const sendMessage = async () => {
-    const currentDate = new Date();
     const data = {
       senderId: userId,
       receiverId: CurrentChat._id,
       message: Message,
-      timming: currentDate.toLocaleTimeString([], {
-        hour12: true,
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
       seen: false,
     };
 
@@ -250,7 +245,6 @@ const Chat = () => {
       senderId,
       receiverId,
       message,
-      timming,
       seen,
     }) => {
       if (senderId === userId || receiverId === userId) {
@@ -259,6 +253,9 @@ const Chat = () => {
             `${appServer}/api/v1/message/one-to-one/change-status/${_id}`
           );
         }
+
+        const currentDate = new Date();
+
         setMessagesList((prev) => [
           ...prev,
           {
@@ -266,7 +263,7 @@ const Chat = () => {
             senderId,
             receiverId,
             message,
-            timming,
+            timeStamp: currentDate.toISOString(),
             seen,
             type: "message",
           },
@@ -372,15 +369,21 @@ const Chat = () => {
                   </div>
                 </div>
                 <div className="chatbox-body w-100 h-100">
-                  {MessagesList.map((Message) => {
+                  {MessagesList.map((Message, index) => {
                     const isSender = Message.senderId === userId ? false : true;
+
+                    const prevMessageTime =
+                      MessagesList[index - 1] &&
+                      new Date(MessagesList[index - 1].timeStamp);
+                    const currMessageTime = new Date(Message.timeStamp);
 
                     return Message.type === "message" ? (
                       <MessageBox
-                        CurrentChat={CurrentChat}
                         key={Message._id}
+                        CurrentChat={CurrentChat}
                         Message={Message}
                         userId={userId}
+                        prevMessageTime={prevMessageTime}
                         onEdit={() => setEditId(Message._id)}
                         onDelete={() => {
                           deleteMessage(Message._id);
@@ -392,43 +395,72 @@ const Chat = () => {
                         (Message.senderId === CurrentChat._id &&
                           Message.receiverId === userId)) &&
                         Message.type === "recording" && (
-                          <div
-                            key={Message._id}
-                            className={`d-flex align-items-center ${
-                              isSender
-                                ? "justify-content-start"
-                                : "justify-content-end"
-                            } px-3`}
-                          >
+                          <div key={Message._id}>
+                            {!prevMessageTime ? (
+                              <div className="d-flex justify-content-center align-items-center">
+                                <span className="bg-white text-muted rounded py-1 px-2">
+                                  {currMessageTime.toLocaleDateString()}
+                                </span>
+                              </div>
+                            ) : (
+                              currMessageTime.toLocaleDateString() !==
+                                prevMessageTime.toLocaleDateString() && (
+                                <div className="d-flex justify-content-center align-items-center">
+                                  <span className="bg-white text-muted rounded py-1 px-2">
+                                    {currMessageTime.toLocaleDateString()}
+                                  </span>
+                                </div>
+                              )
+                            )}
                             <div
-                              className="position-relative my-2 rounded px-2 pt-2 bg-white"
-                              style={{ maxWidth: "250px" }}
+                              className={`d-flex justify-content-center flex-column ${
+                                isSender
+                                  ? "align-items-start"
+                                  : "align-items-end"
+                              } px-3 my-2`}
                             >
-                              <p className="bg-light text-dark rounded p-2 text-ellipsis overflow-hidden whitespace-nowrap">
-                                {Message.filePath}
-                              </p>
-                              <div className="d-flex justify-content-start align-items-center pt-1">
-                                <button
-                                  className="bg-info text-light px-3 py-2 ml-0 mr-2 rounded"
-                                  onClick={() =>
-                                    Message.filePath &&
-                                    downloadRecording(Message.filePath)
-                                  }
-                                >
-                                  Download
-                                </button>
-                                {Message.senderId === userId && (
+                              <div
+                                className="position-relative rounded px-2 pt-2 bg-white"
+                                style={{ maxWidth: "250px" }}
+                              >
+                                <p className="bg-light text-dark rounded p-2 text-ellipsis overflow-hidden whitespace-nowrap">
+                                  {Message.filePath}
+                                </p>
+                                <div className="d-flex justify-content-start align-items-center pt-1">
                                   <button
-                                    className="bg-info text-light px-3 py-2 rounded"
+                                    className="bg-info text-light px-3 py-2 ml-0 mr-2 rounded"
                                     onClick={() =>
                                       Message.filePath &&
-                                      deleteRecording(Message.filePath)
+                                      downloadRecording(Message.filePath)
                                     }
                                   >
-                                    Delete
+                                    Download
                                   </button>
-                                )}
+                                  {Message.senderId === userId && (
+                                    <button
+                                      className="bg-info text-light px-3 py-2 rounded"
+                                      onClick={() =>
+                                        Message.filePath &&
+                                        deleteRecording(Message.filePath)
+                                      }
+                                    >
+                                      Delete
+                                    </button>
+                                  )}
+                                </div>
                               </div>
+                              <span
+                                style={{ fontSize: "10px" }}
+                                className="px-1"
+                              >
+                                {new Date(Message.timeStamp).toLocaleTimeString(
+                                  [],
+                                  {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  }
+                                )}
+                              </span>
                             </div>
                           </div>
                         )
