@@ -35,7 +35,7 @@ const RecordTut = () => {
   const PeerScreenVideoRef = useRef(null);
   const PeerLocalVideoRef = useRef(null);
   const RecorderChunksRef = useRef(null);
-  const RecorderStreamRef = useRef(null);
+  const RecorderRef = useRef(null);
   const peerBRef = useRef(null);
   const peerARef = useRef(null);
 
@@ -100,6 +100,7 @@ const RecordTut = () => {
   };
 
   useEffect(() => {
+    console.log(RecorderRef.current, LocalStream, ScreenStream, CanvasStream);
     const peering = async () => {
       peerARef.current = new RTCPeerConnection(RTCPeerConfig);
       peerBRef.current = new RTCPeerConnection(RTCPeerConfig);
@@ -116,7 +117,7 @@ const RecordTut = () => {
         });
       }
 
-      if (CanvasStream && !CanvasVideoRef.current.srcObject) {
+      if (CanvasStream && !RecorderRef.current) {
         CanvasStream.getTracks().map((track) =>
           peerBRef.current.addTrack(track, CanvasStream)
         );
@@ -128,13 +129,11 @@ const RecordTut = () => {
         CanvasVideoRef.current.autoplay = true;
         CanvasVideoRef.current.muted = true;
 
-        if (
-          !RecorderStreamRef.current ||
-          RecorderStreamRef.current._id !== event.streams[0]._id
-        ) {
-          RecorderStreamRef.current = event.streams[0];
+        if (!RecorderRef.current) {
+          console.log(RecorderRef.current);
 
           const recorder = new MediaRecorder(event.streams[0]);
+          RecorderRef.current = recorder;
           setMediaRecorder(recorder);
 
           recorder.addEventListener(
@@ -143,6 +142,7 @@ const RecordTut = () => {
           );
 
           recorder.addEventListener("stop", async () => {
+            console.log(recorder.stream, event.streams[0]);
             const blob = new Blob([RecorderChunksRef.current], {
               type: "video/webm",
             });
