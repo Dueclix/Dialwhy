@@ -356,12 +356,10 @@ const RecordTut = () => {
             .filter((sender) => sender.track.kind === track.kind)[0]
             .replaceTrack(track)
         );
-        console.log("replacing peer tracks");
       } else {
         const stream = CanvasRef.current.captureStream();
         stream.addTrack(AudioDest.stream.getTracks()[0]);
         setCanvasStream(stream);
-        console.log("updating canvas stream");
       }
     }
   }, [AudioDest]);
