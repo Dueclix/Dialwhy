@@ -127,6 +127,7 @@ const RecordTut = () => {
         CanvasVideoRef.current.playsInline = true;
         CanvasVideoRef.current.autoplay = true;
         CanvasVideoRef.current.muted = true;
+        console.log(event.streams[0], "Got new stream");
 
         const recorder = new MediaRecorder(event.streams[0]);
         setMediaRecorder(recorder);
@@ -141,21 +142,23 @@ const RecordTut = () => {
             type: "video/webm",
           });
 
-          const formData = new FormData();
-          formData.append("video", blob);
-          formData.append("userId", userId);
+          console.log(blob);
 
-          const result = await axios.post(
-            `${appServer}/upload-tutorial`,
-            formData,
-            {
-              headers: { "Content-Type": "multipart/form-data" },
-            }
-          );
+          // const formData = new FormData();
+          // formData.append("video", blob);
+          // formData.append("userId", userId);
 
-          if (result.status === 200) {
-            window.location.replace("/");
-          }
+          // const result = await axios.post(
+          //   `${appServer}/upload-tutorial`,
+          //   formData,
+          //   {
+          //     headers: { "Content-Type": "multipart/form-data" },
+          //   }
+          // );
+
+          // if (result.status === 200) {
+          //   window.location.replace("/");
+          // }
         });
       };
 
