@@ -23,7 +23,6 @@ const RecordTut = () => {
   const [RecorderState, setRecorderState] = useState("inactive");
   const [PeerScreenStream, setPeerScreenStream] = useState(null);
   const [PeerLocalStream, setPeerLocalStream] = useState(null);
-  const userId = JSON.parse(localStorage.getItem("user"))._id;
   const CanvasRef = useRef(document.createElement("canvas"));
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [ScreenStream, setScreenStream] = useState(null);
@@ -36,6 +35,7 @@ const RecordTut = () => {
   const PeerScreenVideoRef = useRef(null);
   const PeerLocalVideoRef = useRef(null);
   const RecorderChunksRef = useRef(null);
+  const RecorderStreamRef = useRef(null);
   const peerBRef = useRef(null);
   const peerARef = useRef(null);
 
@@ -101,138 +101,116 @@ const RecordTut = () => {
 
   useEffect(() => {
     const peering = async () => {
-      const peerA = peerARef.current || new RTCPeerConnection(RTCPeerConfig);
-      const peerB = peerBRef.current || new RTCPeerConnection(RTCPeerConfig);
+      peerARef.current = new RTCPeerConnection(RTCPeerConfig);
+      peerBRef.current = new RTCPeerConnection(RTCPeerConfig);
 
-      if (!peerARef.current || !peerBRef.current) {
-        peerARef.current = peerA;
-        peerBRef.current = peerB;
+      if (LocalStream) {
+        LocalStream.getTracks().forEach((track) => {
+          peerARef.current.addTrack(track, LocalStream);
+        });
+      }
 
-        peerA.ontrack = (event) => {
-          console.log(CanvasStream, LocalStream, ScreenStream, userId);
-          CanvasVideoRef.current.srcObject = event.streams[0];
-          CanvasVideoRef.current.playsInline = true;
-          CanvasVideoRef.current.autoplay = true;
-          CanvasVideoRef.current.muted = true;
+      if (ScreenStream) {
+        ScreenStream.getTracks().forEach((track) => {
+          peerARef.current.addTrack(track, ScreenStream);
+        });
+      }
 
+      if (CanvasStream && !CanvasVideoRef.current.srcObject) {
+        CanvasStream.getTracks().map((track) =>
+          peerBRef.current.addTrack(track, CanvasStream)
+        );
+      }
+
+      peerARef.current.ontrack = (event) => {
+        CanvasVideoRef.current.srcObject = event.streams[0];
+        CanvasVideoRef.current.playsInline = true;
+        CanvasVideoRef.current.autoplay = true;
+        CanvasVideoRef.current.muted = true;
+
+        if(!RecorderStreamRef.current || RecorderStreamRef.current._id !== event.streams[0]._id) {
           const recorder = new MediaRecorder(event.streams[0]);
           setMediaRecorder(recorder);
-
+  
           recorder.addEventListener(
             "dataavailable",
             (ev) => (RecorderChunksRef.current = ev.data)
           );
-
+  
           recorder.addEventListener("stop", async () => {
-            // const blob = new Blob([RecorderChunksRef.current], {
-            //   type: "video/webm",
-            // });
-            // const formData = new FormData();
-            // formData.append("video", blob);
-            // formData.append("userId", userId);
-            // const result = await axios.post(
-            //   `${appServer}/upload-tutorial`,
-            //   formData,
-            //   {
-            //     headers: { "Content-Type": "multipart/form-data" },
-            //   }
-            // );
-            // if (result.status === 200) {
-            //   window.location.replace("/");
-            // }
+            const blob = new Blob([RecorderChunksRef.current], {
+              type: "video/webm",
+            });
+  
+            const formData = new FormData();
+            formData.append("video", blob);
+            formData.append("userId", JSON.parse(localStorage.getItem("user"))._id);
+  
+            const result = await axios.post(
+              `${appServer}/upload-tutorial`,
+              formData,
+              {
+                headers: { "Content-Type": "multipart/form-data" },
+              }
+            );
+  
+            if (result.status === 200) {
+              window.location.replace("/");
+            }
           });
-        };
-
-        peerB.ontrack = (event) => {
-          const incomingStream = event.streams[0];
-
-          if (incomingStream.id === LocalStream.id) {
-            setPeerLocalStream(incomingStream);
-            PeerLocalVideoRef.current.srcObject = incomingStream;
-          } else if (incomingStream.id === ScreenStream.id) {
-            setPeerScreenStream(incomingStream);
-            PeerScreenVideoRef.current.srcObject = incomingStream;
-          }
-        };
-
-        peerA.onicecandidate = (event) => {
-          if (event.candidate) {
-            peerB.addIceCandidate(event.candidate).catch((error) => {
-              console.error("Error adding ICE candidate to peerB:", error);
-            });
-          }
-        };
-
-        peerB.onicecandidate = (event) => {
-          if (event.candidate) {
-            peerA.addIceCandidate(event.candidate).catch((error) => {
-              console.error("Error adding ICE candidate to peerA:", error);
-            });
-          }
-        };
-
-        const offer = await peerA.createOffer();
-        await peerA.setLocalDescription(offer);
-        await peerB.setRemoteDescription(offer);
-
-        const answer = await peerB.createAnswer();
-        await peerB.setLocalDescription(answer);
-        await peerA.setRemoteDescription(answer);
-      }
-
-      if (LocalStream) {
-        try {
-          if (peerARef.current.signalingState === "stable") {
-            LocalStream.getTracks().forEach((track) => {
-              peerARef.current.addTrack(track, LocalStream);
-            });
-          } else {
-            console.log(peerARef);
-          }
-        } catch (err) {
-          console.log(
-            err,
-            peerARef.current,
-            peerARef.current.getSenders(),
-            LocalStream
-          );
         }
-      }
+      };
 
-      if (ScreenStream) {
-        try {
-          if (peerARef.current.signalingState === "stable") {
-            ScreenStream.getTracks().forEach((track) => {
-              peerARef.current.addTrack(track, ScreenStream);
-            });
-          } else {
-            console.log(peerARef);
-          }
-        } catch (err) {
-          console.log(
-            err,
-            peerARef.current,
-            peerARef.current.getSenders(),
-            ScreenStream
-          );
-        }
-      }
+      peerBRef.current.ontrack = (event) => {
+        const incomingStream = event.streams[0];
 
-      if (CanvasStream && !CanvasVideoRef.current.srcObject) {
-        try {
-          CanvasStream.getTracks().map((track) =>
-            peerBRef.current.addTrack(track, CanvasStream)
-          );
-        } catch (err) {
-          console.log(err);
+        if (incomingStream.id === LocalStream.id) {
+          setPeerLocalStream(incomingStream);
+          PeerLocalVideoRef.current.srcObject = incomingStream;
+        } else if (incomingStream.id === ScreenStream.id) {
+          setPeerScreenStream(incomingStream);
+          PeerScreenVideoRef.current.srcObject = incomingStream;
         }
-      }
+      };
+
+      peerARef.current.onicecandidate = (event) => {
+        if (event.candidate) {
+          peerBRef.current.addIceCandidate(event.candidate).catch((error) => {
+            console.error("Error adding ICE candidate to peerB:", error);
+          });
+        }
+      };
+
+      peerBRef.current.onicecandidate = (event) => {
+        if (event.candidate) {
+          peerARef.current.addIceCandidate(event.candidate).catch((error) => {
+            console.error("Error adding ICE candidate to peerA:", error);
+          });
+        }
+      };
+
+      const offer = await peerARef.current.createOffer();
+      await peerARef.current.setLocalDescription(offer);
+      await peerBRef.current.setRemoteDescription(offer);
+
+      const answer = await peerBRef.current.createAnswer();
+      await peerBRef.current.setLocalDescription(answer);
+      await peerARef.current.setRemoteDescription(answer);
     };
 
     peering().catch((error) => {
       console.error("Error during peer connection setup:", error);
     });
-  }, [CanvasStream, LocalStream, ScreenStream, userId]);
+
+    return () => {
+      if (peerARef.current) {
+        peerARef.current.close();
+      }
+      if (peerBRef.current) {
+        peerBRef.current.close();
+      }
+    };
+  }, [CanvasStream, LocalStream, ScreenStream]);
 
   useEffect(() => {
     const init = async () => {
