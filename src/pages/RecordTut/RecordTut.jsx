@@ -198,6 +198,23 @@ const RecordTut = () => {
   }, [ScreenStream]);
 
   useEffect(() => {
+    if (peerBRef.current.getSenders().length >= 2) {
+      console.log("changing CanvasStream track on sender...");
+      CanvasStream.getTracks().map((track) =>
+        peerBRef.current
+          .getSenders()
+          .filter((sender) => sender.track.kind === track.kind)[0]
+          .replaceTrack(track)
+      );
+    } else {
+      console.log("Updating CanvasStream...");
+      CanvasStream.getTracks.map((track) =>
+        peerBRef.current.addTrack(track, CanvasStream)
+      );
+    }
+  }, [CanvasStream]);
+
+  useEffect(() => {
     const init = async () => {
       const devices = await navigator.mediaDevices.enumerateDevices();
       const videoInput = devices.find((device) => device.kind === "videoinput");
@@ -333,26 +350,9 @@ const RecordTut = () => {
 
   useEffect(() => {
     if (CanvasRef.current && AudioDest) {
-      if (peerBRef.current.getSenders().length >= 2) {
-        console.log("changing CanvasStream track on sender...");
-        const stream = CanvasRef.current.captureStream();
-        stream.addTrack(AudioDest.stream.getTracks()[0]);
-
-        stream.getTracks().map((track) =>
-          peerBRef.current
-            .getSenders()
-            .filter((sender) => sender.track.kind === track.kind)[0]
-            .replaceTrack(track)
-        );
-      } else {
-        console.log("Updating CanvasStream...");
-        const stream = CanvasRef.current.captureStream();
-        stream.addTrack(AudioDest.stream.getTracks()[0]);
-
-        stream.getTracks.map((track) =>
-          peerBRef.current.addTrack(track, stream)
-        );
-      }
+      const stream = CanvasRef.current.captureStream();
+      stream.addTrack(AudioDest.stream.getTracks()[0]);
+      setCanvasStream(stream);
     }
   }, [AudioDest]);
 
