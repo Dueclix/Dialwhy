@@ -128,24 +128,32 @@ const RecordTut = () => {
         CanvasVideoRef.current.autoplay = true;
         CanvasVideoRef.current.muted = true;
 
-        if(!RecorderStreamRef.current || RecorderStreamRef.current._id !== event.streams[0]._id) {
+        if (
+          !RecorderStreamRef.current ||
+          RecorderStreamRef.current._id !== event.streams[0]._id
+        ) {
+          RecorderStreamRef.current = event.streams[0];
+
           const recorder = new MediaRecorder(event.streams[0]);
           setMediaRecorder(recorder);
-  
+
           recorder.addEventListener(
             "dataavailable",
             (ev) => (RecorderChunksRef.current = ev.data)
           );
-  
+
           recorder.addEventListener("stop", async () => {
             const blob = new Blob([RecorderChunksRef.current], {
               type: "video/webm",
             });
-  
+
             const formData = new FormData();
             formData.append("video", blob);
-            formData.append("userId", JSON.parse(localStorage.getItem("user"))._id);
-  
+            formData.append(
+              "userId",
+              JSON.parse(localStorage.getItem("user"))._id
+            );
+
             const result = await axios.post(
               `${appServer}/upload-tutorial`,
               formData,
@@ -153,7 +161,7 @@ const RecordTut = () => {
                 headers: { "Content-Type": "multipart/form-data" },
               }
             );
-  
+
             if (result.status === 200) {
               window.location.replace("/");
             }
