@@ -198,6 +198,8 @@ const RecordTut = () => {
   }, [ScreenStream]);
 
   useEffect(() => {
+    if(!CanvasStream) return;
+    
     if (peerBRef.current.getSenders().length >= 2) {
       console.log("changing CanvasStream track on sender...");
       CanvasStream.getTracks().map((track) =>
