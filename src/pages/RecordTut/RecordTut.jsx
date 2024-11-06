@@ -127,11 +127,9 @@ const RecordTut = () => {
             // const blob = new Blob([RecorderChunksRef.current], {
             //   type: "video/webm",
             // });
-
             // const formData = new FormData();
             // formData.append("video", blob);
             // formData.append("userId", userId);
-
             // const result = await axios.post(
             //   `${appServer}/upload-tutorial`,
             //   formData,
@@ -139,7 +137,6 @@ const RecordTut = () => {
             //     headers: { "Content-Type": "multipart/form-data" },
             //   }
             // );
-
             // if (result.status === 200) {
             //   window.location.replace("/");
             // }
@@ -184,21 +181,33 @@ const RecordTut = () => {
       }
 
       if (LocalStream) {
-        LocalStream.getTracks().forEach((track) => {
-          peerARef.current.addTrack(track, LocalStream);
-        });
+        try {
+          LocalStream.getTracks().forEach((track) => {
+            peerARef.current.addTrack(track, LocalStream);
+          });
+        } catch(err) {
+          console.log(err);
+        }
       }
 
       if (ScreenStream) {
-        ScreenStream.getTracks().forEach((track) => {
-          peerARef.current.addTrack(track, ScreenStream);
-        });
+        try {
+          ScreenStream.getTracks().forEach((track) => {
+            peerARef.current.addTrack(track, ScreenStream);
+          });
+        } catch(err) {
+          console.log(err);
+        }
       }
 
       if (CanvasStream && !CanvasVideoRef.current.srcObject) {
-        CanvasStream.getTracks().map((track) =>
-          peerBRef.current.addTrack(track, CanvasStream)
-        );
+        try {
+          CanvasStream.getTracks().map((track) =>
+            peerBRef.current.addTrack(track, CanvasStream)
+          );
+        } catch(err) {
+          console.log(err);
+        }
       }
     };
 
