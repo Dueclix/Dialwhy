@@ -104,6 +104,10 @@ const RecordTut = () => {
       peerARef.current = new RTCPeerConnection(RTCPeerConfig);
       peerBRef.current = new RTCPeerConnection(RTCPeerConfig);
 
+      if(CanvasRef.current && AudioDest) {
+        console.log(peerBRef.current.getSenders().length >= 2)
+      }
+      
       if (LocalStream) {
         LocalStream.getTracks().forEach((track) => {
           peerARef.current.addTrack(track, LocalStream);
@@ -127,7 +131,6 @@ const RecordTut = () => {
         CanvasVideoRef.current.playsInline = true;
         CanvasVideoRef.current.autoplay = true;
         CanvasVideoRef.current.muted = true;
-        console.log(event.streams[0], "Got new stream");
 
         const recorder = new MediaRecorder(event.streams[0]);
         setMediaRecorder(recorder);
@@ -138,11 +141,9 @@ const RecordTut = () => {
         );
 
         recorder.addEventListener("stop", async () => {
-          const blob = new Blob([RecorderChunksRef.current], {
-            type: "video/webm",
-          });
-
-          console.log(blob);
+          // const blob = new Blob([RecorderChunksRef.current], {
+          //   type: "video/webm",
+          // });
 
           // const formData = new FormData();
           // formData.append("video", blob);
@@ -211,7 +212,7 @@ const RecordTut = () => {
         peerBRef.current.close();
       }
     };
-  }, [CanvasStream, LocalStream, ScreenStream, userId]);
+  }, [AudioDest, CanvasStream, LocalStream, ScreenStream, userId]);
 
   useEffect(() => {
     const init = async () => {
@@ -349,6 +350,7 @@ const RecordTut = () => {
 
   useEffect(() => {
     if (CanvasRef.current && AudioDest) {
+      console.log(peerBRef.current.getSenders().length >= 2);
       if (peerBRef.current.getSenders().length >= 2) {
         const stream = CanvasRef.current.captureStream();
         stream.addTrack(AudioDest.stream.getTracks()[0]);
