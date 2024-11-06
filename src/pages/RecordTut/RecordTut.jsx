@@ -116,8 +116,7 @@ const RecordTut = () => {
         });
       }
 
-      if (CanvasStream) {
-        console.log("CanvasStream got updated.", CanvasStream);
+      if (CanvasStream && !CanvasVideoRef.current.srcObject) {
         CanvasStream.getTracks().map((track) =>
           peerBRef.current.addTrack(track, CanvasStream)
         );
@@ -138,25 +137,25 @@ const RecordTut = () => {
         );
 
         recorder.addEventListener("stop", async () => {
-          // const blob = new Blob([RecorderChunksRef.current], {
-          //   type: "video/webm",
-          // });
+          const blob = new Blob([RecorderChunksRef.current], {
+            type: "video/webm",
+          });
 
-          // const formData = new FormData();
-          // formData.append("video", blob);
-          // formData.append("userId", userId);
+          const formData = new FormData();
+          formData.append("video", blob);
+          formData.append("userId", userId);
 
-          // const result = await axios.post(
-          //   `${appServer}/upload-tutorial`,
-          //   formData,
-          //   {
-          //     headers: { "Content-Type": "multipart/form-data" },
-          //   }
-          // );
+          const result = await axios.post(
+            `${appServer}/upload-tutorial`,
+            formData,
+            {
+              headers: { "Content-Type": "multipart/form-data" },
+            }
+          );
 
-          // if (result.status === 200) {
-          //   window.location.replace("/");
-          // }
+          if (result.status === 200) {
+            window.location.replace("/");
+          }
         });
       };
 
