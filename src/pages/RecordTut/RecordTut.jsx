@@ -104,10 +104,6 @@ const RecordTut = () => {
       peerARef.current = new RTCPeerConnection(RTCPeerConfig);
       peerBRef.current = new RTCPeerConnection(RTCPeerConfig);
 
-      if(CanvasRef.current && AudioDest) {
-        console.log(peerBRef.current.getSenders().length >= 2)
-      }
-      
       if (LocalStream) {
         LocalStream.getTracks().forEach((track) => {
           peerARef.current.addTrack(track, LocalStream);
@@ -121,6 +117,7 @@ const RecordTut = () => {
       }
 
       if (CanvasStream) {
+        console.log("CanvasStream got updated.", CanvasStream);
         CanvasStream.getTracks().map((track) =>
           peerBRef.current.addTrack(track, CanvasStream)
         );
@@ -212,7 +209,7 @@ const RecordTut = () => {
         peerBRef.current.close();
       }
     };
-  }, [AudioDest, CanvasStream, LocalStream, ScreenStream, userId]);
+  }, [CanvasStream, LocalStream, ScreenStream, userId]);
 
   useEffect(() => {
     const init = async () => {
@@ -350,7 +347,6 @@ const RecordTut = () => {
 
   useEffect(() => {
     if (CanvasRef.current && AudioDest) {
-      console.log(peerBRef.current.getSenders().length >= 2);
       if (peerBRef.current.getSenders().length >= 2) {
         const stream = CanvasRef.current.captureStream();
         stream.addTrack(AudioDest.stream.getTracks()[0]);
@@ -361,10 +357,12 @@ const RecordTut = () => {
             .filter((sender) => sender.track.kind === track.kind)[0]
             .replaceTrack(track)
         );
+        console.log("replacing peer tracks");
       } else {
         const stream = CanvasRef.current.captureStream();
         stream.addTrack(AudioDest.stream.getTracks()[0]);
         setCanvasStream(stream);
+        console.log("updating canvas stream");
       }
     }
   }, [AudioDest]);
