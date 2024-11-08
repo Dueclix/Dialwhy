@@ -288,7 +288,7 @@ const RecordTut = () => {
       }
     };
 
-    const intervalId = setInterval(drawFrame, 1000 / 30);
+    const intervalId = setInterval(drawFrame, 1000 / 60);
     if (PeerARef.current && PeerARef.current.getSenders().length > 0) {
       PeerARef.current
         .getSenders()
