@@ -147,7 +147,6 @@ const RecordTut = () => {
         const blob = new Blob([RecorderChunksRef.current], {
           type: "video/mp4",
         });
-        console.log(blob);
 
         const formData = new FormData();
         formData.append("video", blob);
@@ -287,17 +286,16 @@ const RecordTut = () => {
           CanvasRef.current.height
         );
       }
-
-      requestAnimationFrame(drawFrame);
     };
 
-    drawFrame();
+    const intervalId = setInterval(drawFrame, 1000 / 30);
     if (PeerARef.current && PeerARef.current.getSenders().length > 0) {
       PeerARef.current
         .getSenders()
         .filter((sender) => sender.track.kind === "video")[0]
         .replaceTrack(CanvasRef.current.captureStream().getVideoTracks()[0]);
     }
+    return () => clearInterval(intervalId);
   }, [PeerUserStream, PeerScreenStream]);
 
   useEffect(() => {
