@@ -45,15 +45,16 @@ const ContactsList = () => {
 
   return (
     <div>
-      <div className="w-100 px-4 position-relative">
+      <div className="w-100 mt-4 position-relative">
         <input
           type="text"
           value={SearchName}
           placeholder="Search..."
+          style={{ borderRadius: "25px" }}
           onChange={(e) => setSearchName(e.target.value)}
-          className="w-100 pl-3 pr-5 py-2 rounded-full border border-secondary"
+          className="w-100 pl-3 pr-5 py-2 border border-secondary"
         />
-        <SearchOutlined className="position-absolute right-5 top-3 mr-3" />
+        <SearchOutlined className="position-absolute right-5 top-5 mr-2 mt-1" />
       </div>
       {SearchName !== "" ? (
         FriendsList.filter(
@@ -93,7 +94,10 @@ const ContactsList = () => {
             ))}
           </ul>
         ) : (
-          <div className="d-flex justify-content-center align-items-center flex-column w-100 h-75 text-secondary">
+          <div
+            className="d-flex justify-content-center align-items-center flex-column w-100 text-secondary"
+            style={{ height: "50vh" }}
+          >
             No data matches with {SearchName}
           </div>
         )
@@ -147,7 +151,10 @@ const ContactsList = () => {
           </div>
         </>
       ) : (
-        <div className="d-flex justify-content-center align-items-center flex-column w-100 h-75 text-secondary">
+        <div
+          className="d-flex justify-content-center align-items-center flex-column w-100 text-secondary"
+          style={{ height: "50vh" }}
+        >
           <Drafts fontSize="large" color="inherit" />
           Your have no friends.
         </div>

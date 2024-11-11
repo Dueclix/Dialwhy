@@ -112,15 +112,16 @@ const Tutorials = () => {
             className="w-100 d-flex justify-content-between align-items-center"
             style={{ overflow: "initial !important" }}
           >
-            <div className="w-75 px-4 position-relative">
+            <div className="w-75 position-relative">
               <input
                 type="text"
                 value={SearchTut}
                 placeholder="Search..."
+                style={{ borderRadius: "25px" }}
                 onChange={(e) => setSearchTut(e.target.value)}
-                className="w-100 pl-3 pr-5 py-2 rounded-full border border-secondary"
+                className="w-100 pl-3 pr-5 py-2 border border-secondary"
               />
-              <SearchOutlined className="position-absolute right-5 top-3 mr-3" />
+              <SearchOutlined className="position-absolute right-5 top-5 mr-2 mt-1" />
             </div>
             <a
               href="/record-tutorial"
