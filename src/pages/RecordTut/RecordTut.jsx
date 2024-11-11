@@ -12,6 +12,7 @@ import {
 import React, { useEffect, useRef, useState } from "react";
 import { appServer } from "../../utils";
 import axios from "axios";
+import { saveBlob } from "../../utils/db";
 
 const RTCPeerConfig = {
   iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
@@ -147,22 +148,9 @@ const RecordTut = () => {
         const blob = new Blob([RecorderChunksRef.current], {
           type: "video/mp4",
         });
+        await saveBlob("tutorial-blob", blob);
 
-        const formData = new FormData();
-        formData.append("video", blob);
-        formData.append("userId", JSON.parse(localStorage.getItem("user"))._id);
-
-        const result = await axios.post(
-          `${appServer}/upload-tutorial`,
-          formData,
-          {
-            headers: { "Content-Type": "multipart/form-data" },
-          }
-        );
-
-        if (result.status === 200) {
-          window.location.replace("/");
-        }
+        window.location.replace("/save-tutorial/");
       });
     });
 
@@ -288,7 +276,7 @@ const RecordTut = () => {
       }
     };
 
-    const FPS = PeerScreenStream ? 200 : 100;
+    const FPS = PeerScreenStream ? 240 : 120;
     const intervalId = setInterval(drawFrame, 1000 / FPS);
     if (PeerARef.current && PeerARef.current.getSenders().length > 0) {
       PeerARef.current

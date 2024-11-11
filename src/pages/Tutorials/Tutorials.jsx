@@ -1,5 +1,5 @@
 import AccountLayout from "../../Components/Partials/AccountLayout";
-import { Delete, Download } from "@mui/icons-material";
+import { Delete, Download, Edit } from "@mui/icons-material";
 import Layout from "../../Components/Partials/Layout";
 import React, { useEffect, useState } from "react";
 import { appServer } from "../../utils";
@@ -7,11 +7,13 @@ import axios from "axios";
 
 const Tutorials = () => {
   const userId = JSON.parse(localStorage.getItem("user"))._id;
+  const [EditTutName, setEditTutName] = useState("");
+  const [EditTutId, setEditTutId] = useState(null);
   const [tuts, setTuts] = useState([]);
 
-  const DownloadRecording = async (filename) => {
+  const DownloadRecording = async (filename, originalName) => {
     const response = await axios.get(
-      `${appServer}/tutorial-recordings/download/${filename}`,
+      `${appServer}/tutorial-recordings/download/${originalName}`,
       {
         responseType: "blob",
       }
@@ -23,7 +25,7 @@ const Tutorials = () => {
 
     const link = document.createElement("a");
     link.href = window.URL.createObjectURL(blob);
-    link.download = filename;
+    link.download = filename + ".mp4";
 
     document.body.appendChild(link);
     link.click();
@@ -32,12 +34,33 @@ const Tutorials = () => {
     window.URL.revokeObjectURL(link.href);
   };
 
+  const UpdateName = async () => {
+    const result = await axios.post(`${appServer}/tutorial-recordings/edit/`, {
+      tutId: EditTutId,
+      updatedName: EditTutName,
+    });
+
+    if(result.status === 200) {
+      setTuts((prevTuts) => [
+        ...prevTuts.map((tut) =>
+          tut._id === EditTutId ? { ...tut, tutName: EditTutName } : tut
+        ),
+      ]);
+  
+      setEditTutId(null);
+      setEditTutName("");
+    } else {
+      setEditTutId(null);
+      setEditTutName("");
+    }
+  };
+
   const DeleteRecording = async (filename) => {
     await axios.post(`${appServer}/tutorial-recordings/delete/`, { filename });
 
     const tutDeleted = tuts.find((tut) => tut.filePath === filename);
     if (tutDeleted) {
-      setTuts((prev) => [...prev.filter((tut) => tut.id !== tutDeleted.id)]);
+      setTuts((prev) => [...prev.filter((tut) => tut._id !== tutDeleted._id)]);
     }
   };
 
@@ -51,6 +74,16 @@ const Tutorials = () => {
     };
     tutsGet();
   }, [userId]);
+
+  useEffect(() => {
+    if (tuts) {
+      if (EditTutId) {
+        setEditTutName(tuts.find((tut) => tut._id === EditTutId).tutName);
+      } else {
+        setEditTutName("");
+      }
+    }
+  }, [tuts, EditTutId]);
 
   return (
     <Layout>
@@ -103,7 +136,7 @@ const Tutorials = () => {
                         className="text-dark text-ellipsis overflow-hidden whitespace-nowrap"
                         style={{ fontSize: "16px" }}
                       >
-                        {tut.filePath}
+                        {tut.tutName}
                       </p>
                       <span style={{ fontSize: "12px" }}>{timeStamp}</span>
                     </div>
@@ -111,7 +144,16 @@ const Tutorials = () => {
                       <button
                         className="my-0 mx-1 p-2 bg-primary rounded text-white"
                         style={{ fontSize: "18px" }}
-                        onClick={() => DownloadRecording(tut.filePath)}
+                        onClick={() => setEditTutId(tut._id)}
+                      >
+                        <Edit fontSize="inherit" />
+                      </button>
+                      <button
+                        className="my-0 mx-1 p-2 bg-primary rounded text-white"
+                        style={{ fontSize: "18px" }}
+                        onClick={() =>
+                          DownloadRecording(tut.tutName, tut.filePath)
+                        }
                       >
                         <Download fontSize="inherit" />
                       </button>
@@ -129,6 +171,40 @@ const Tutorials = () => {
             })}
           </ul>
         </div>
+        {EditTutId && (
+          <div
+            className="d-flex align-items-center justify-content-center position-fixed top-0 right-0 bottom-0 left-0"
+            style={{ backgroundColor: "#ffffff30" }}
+          >
+            <div
+              className="d-flex align-items-center justify-content-center flex-column bg-light rounded shadow"
+              style={{ width: "50%", height: "40%" }}
+            >
+              <input
+                type="text"
+                value={EditTutName}
+                className="w-75 px-2 py-1 border border-primary rounded"
+                onChange={(e) => setEditTutName(e.target.value)}
+              />
+              <div className="w-75 pt-2">
+                <button
+                  className="btn btn-primary"
+                  style={{ fontSize: "16px" }}
+                  onClick={UpdateName}
+                >
+                  Update
+                </button>
+                <button
+                  className="btn btn-primary"
+                  style={{ fontSize: "16px" }}
+                  onClick={() => setEditTutId(null)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </AccountLayout>
     </Layout>
   );

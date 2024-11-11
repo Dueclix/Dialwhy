@@ -3,6 +3,7 @@ import AccountLink from "./pages/navigationLinks/account/account.jsx";
 import Footer2Link from "./pages/navigationLinks/footer/footer2.jsx";
 import NavbarLink from "./pages/navigationLinks/navbar/navbar.jsx";
 import FooterLink from "./pages/navigationLinks/footer/footer.jsx";
+import SaveTutorial from "./pages/SaveTutorial/SaveTutorial.jsx";
 import { Routes, Route, BrowserRouter } from "react-router-dom";
 import ChangeBackground from "./Components/ChangeBackgroud.jsx";
 import CreateLink from "./pages/navigationLinks/createLink.jsx";
@@ -90,6 +91,7 @@ function App() {
           <Route exact path="/review-checkout" element={<CheckoutReview />} />
           <Route exact path="/permission/:roomId" element={<AskToJoin />} />
           <Route exact path="/create-members" element={<CreateMember />} />
+          <Route exact path="/save-tutorial/" element={<SaveTutorial />} />
           <Route exact path="/record-tutorial" element={<RecordTut />} />
           <Route exact path="/room/edit/:id" element={<EditRoom />} />
           <Route exact path="/createroom" element={<CreateRoom />} />
