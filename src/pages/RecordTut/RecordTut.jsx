@@ -10,8 +10,6 @@ import {
   Mic,
 } from "@mui/icons-material";
 import React, { useEffect, useRef, useState } from "react";
-import { appServer } from "../../utils";
-import axios from "axios";
 import { saveBlob } from "../../utils/db";
 
 const RTCPeerConfig = {
@@ -232,22 +230,23 @@ const RecordTut = () => {
     screenVideo.autoplay = true;
 
     const ctx = CanvasRef.current.getContext("2d");
-    let firstRun = true;
 
     const drawFrame = () => {
       if (PeerScreenStream) {
-        if (document.hidden || firstRun) {
-          CanvasRef.current.width = screenVideo.videoWidth;
-          CanvasRef.current.height = screenVideo.videoHeight;
-          ctx.drawImage(
-            screenVideo,
-            0,
-            0,
-            CanvasRef.current.width,
-            CanvasRef.current.height
-          );
-          firstRun = false;
-        }
+        document.hidden
+          ? !PeerScreenVideoRef.current.paused &&
+            PeerScreenVideoRef.current.pause()
+          : PeerScreenVideoRef.current.play();
+
+        CanvasRef.current.width = screenVideo.videoWidth;
+        CanvasRef.current.height = screenVideo.videoHeight;
+        ctx.drawImage(
+          screenVideo,
+          0,
+          0,
+          CanvasRef.current.width,
+          CanvasRef.current.height
+        );
 
         const circleX = CanvasRef.current.width - 110;
         const circleY = CanvasRef.current.height - 110;
