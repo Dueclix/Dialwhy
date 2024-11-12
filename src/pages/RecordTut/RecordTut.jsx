@@ -233,10 +233,11 @@ const RecordTut = () => {
 
     const drawFrame = () => {
       if (PeerScreenStream) {
-        document.hidden
+        !document.hidden
           ? !PeerScreenVideoRef.current.paused &&
             PeerScreenVideoRef.current.pause()
-          : PeerScreenVideoRef.current.play();
+          : PeerScreenVideoRef.current.paused &&
+            PeerScreenVideoRef.current.play();
 
         CanvasRef.current.width = screenVideo.videoWidth;
         CanvasRef.current.height = screenVideo.videoHeight;
