@@ -232,18 +232,22 @@ const RecordTut = () => {
     screenVideo.autoplay = true;
 
     const ctx = CanvasRef.current.getContext("2d");
+    let firstRun = true;
 
     const drawFrame = () => {
       if (PeerScreenStream) {
-        CanvasRef.current.width = screenVideo.videoWidth;
-        CanvasRef.current.height = screenVideo.videoHeight;
-        ctx.drawImage(
-          screenVideo,
-          0,
-          0,
-          CanvasRef.current.width,
-          CanvasRef.current.height
-        );
+        if (document.hidden || firstRun) {
+          CanvasRef.current.width = screenVideo.videoWidth;
+          CanvasRef.current.height = screenVideo.videoHeight;
+          ctx.drawImage(
+            screenVideo,
+            0,
+            0,
+            CanvasRef.current.width,
+            CanvasRef.current.height
+          );
+          firstRun = false;
+        }
 
         const circleX = CanvasRef.current.width - 110;
         const circleY = CanvasRef.current.height - 110;
@@ -276,7 +280,7 @@ const RecordTut = () => {
       }
     };
 
-    const FPS = PeerScreenStream ? 240 : 120;
+    const FPS = PeerScreenStream ? 180 : 120;
     const intervalId = setInterval(drawFrame, 1000 / FPS);
     if (PeerARef.current && PeerARef.current.getSenders().length > 0) {
       PeerARef.current
