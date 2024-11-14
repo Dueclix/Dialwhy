@@ -233,12 +233,6 @@ const RecordTut = () => {
 
     const drawFrame = () => {
       if (PeerScreenStream) {
-        !document.hidden
-          ? !PeerScreenVideoRef.current.paused &&
-            PeerScreenVideoRef.current.pause()
-          : PeerScreenVideoRef.current.paused &&
-            PeerScreenVideoRef.current.play();
-
         CanvasRef.current.width = screenVideo.videoWidth;
         CanvasRef.current.height = screenVideo.videoHeight;
         ctx.drawImage(
@@ -248,25 +242,34 @@ const RecordTut = () => {
           CanvasRef.current.width,
           CanvasRef.current.height
         );
+        // CanvasRef.current.width = screenVideo.videoWidth;
+        // CanvasRef.current.height = screenVideo.videoHeight;
+        // ctx.drawImage(
+        //   screenVideo,
+        //   0,
+        //   0,
+        //   CanvasRef.current.width,
+        //   CanvasRef.current.height
+        // );
 
-        const circleX = CanvasRef.current.width - 110;
-        const circleY = CanvasRef.current.height - 110;
-        const radius = 100;
+        // const circleX = CanvasRef.current.width - 110;
+        // const circleY = CanvasRef.current.height - 110;
+        // const radius = 100;
 
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(circleX, circleY, radius, 0, Math.PI * 2, true);
-        ctx.closePath();
-        ctx.clip();
+        // ctx.save();
+        // ctx.beginPath();
+        // ctx.arc(circleX, circleY, radius, 0, Math.PI * 2, true);
+        // ctx.closePath();
+        // ctx.clip();
 
-        ctx.drawImage(
-          localVideo,
-          circleX - radius,
-          circleY - radius,
-          radius * 2,
-          radius * 2
-        );
-        ctx.restore();
+        // ctx.drawImage(
+        //   localVideo,
+        //   circleX - radius,
+        //   circleY - radius,
+        //   radius * 2,
+        //   radius * 2
+        // );
+        // ctx.restore();
       } else {
         CanvasRef.current.width = localVideo.videoWidth;
         CanvasRef.current.height = localVideo.videoHeight;
@@ -337,46 +340,10 @@ const RecordTut = () => {
 
   return (
     <div className="bg-dark">
-      <div
-        style={
-          IsScreenShare
-            ? {
-                position: "fixed",
-                bottom: "20px",
-                right: "20px",
-                width: "250px",
-                height: "250px",
-                borderRadius: "50%",
-                overflow: "hidden",
-                border: "2px solid white",
-              }
-            : {}
-        }
-      >
-        <video
-          disablePictureInPicture
-          disableRemotePlayback
-          ref={PeerUserVideoRef}
-          playsInline
-          autoPlay
-          muted
-          style={
-            IsScreenShare
-              ? {
-                  objectFit: "cover",
-                  width: "100%",
-                  height: "100%",
-                }
-              : { width: "auto", margin: "auto", height: "100vh" }
-          }
-        ></video>
-      </div>
       <video
         style={{ width: "auto", margin: "auto", height: "100vh" }}
-        className={`${IsScreenShare ? "d-flex" : "d-none"}`}
-        disablePictureInPicture
-        disableRemotePlayback
-        ref={PeerScreenVideoRef}
+        className="d-flex"
+        ref={PeerUserVideoRef}
         playsInline
         autoPlay
         muted
