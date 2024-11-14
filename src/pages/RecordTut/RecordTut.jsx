@@ -284,7 +284,7 @@ const RecordTut = () => {
     };
 
     // const FPS = PeerScreenStream ? 180 : 120;
-    const intervalId = setInterval(drawFrame, 1000/ 120);
+    const intervalId = setInterval(drawFrame, 1000 / 120);
     if (PeerARef.current && PeerARef.current.getSenders().length > 0) {
       PeerARef.current
         .getSenders()
