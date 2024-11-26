@@ -23,6 +23,7 @@ import RecordTut from "./pages/RecordTut/RecordTut.jsx";
 import LoginSignup from "./Components/LoginSignup.jsx";
 import Contacts from "./pages/Contacts/Contacts.jsx";
 import CreateRoom from "./Components/CreateRoom.jsx";
+import WebrtcVC from "./pages/WebrtcVC/WebrtcVC.jsx";
 import Mymembers from "./Components/Mymembers.jsx";
 import EditAPIKeys from "./pages/EditAPIKeys.jsx";
 import GetQuote from "./Components/GetQuote.jsx";
@@ -104,6 +105,7 @@ function App() {
           <Route exact path="/Contacts" element={<Contacts />} />
           <Route exact path="/room/:roomId" element={<Room />} />
           <Route exact path="/checkout" element={<Checkout />} />
+          <Route exact path="/webrtc" element={<WebrtcVC />} />
           <Route exact path="/contact" element={<Contact />} />
           <Route exact path="/privacy" element={<Privacy />} />
           <Route exact path="/payment" element={<Payment />} />
