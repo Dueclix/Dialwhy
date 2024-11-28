@@ -25,6 +25,7 @@ const SaveTutorial = () => {
 
     const result = await axios.post(`${appServer}/upload-tutorial`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
+      timeout: 0,
     });
 
     if (result.status === 200) {
