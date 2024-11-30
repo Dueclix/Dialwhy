@@ -1,4 +1,3 @@
-import VirtualBackground from "./pages/VirtualBackground/VirtualBackground.jsx";
 import DashboardLink from "./pages/navigationLinks/dashboard/dashboard.jsx";
 import AccountLink from "./pages/navigationLinks/account/account.jsx";
 import Footer2Link from "./pages/navigationLinks/footer/footer2.jsx";
@@ -87,7 +86,6 @@ function App() {
             path="/change-background"
             element={<ChangeBackground />}
           />
-          <Route exact path="/virtual-background" element={<VirtualBackground />} />
           <Route exact path="/video-background" element={<VideoBackground />} />
           <Route exact path="/change-password" element={<Changepassword />} />
           <Route exact path="/forgot-password" element={<ForgotPassword />} />
