@@ -537,7 +537,7 @@ function VirtualBackground() {
 
   return (
     <div
-      className="d-flex w-100 justify-content-center align-items-center position-relative"
+      className="d-flex w-100 justify-content-center align-items-center position-relative bg-dark"
       style={{ height: "100vh" }}
     >
       {CallStatus !== "" && (
