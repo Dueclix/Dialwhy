@@ -321,7 +321,8 @@ function VirtualBackground() {
   useEffect(() => {
     if (!LocalStream) return;
 
-    setCallAudio(new Audio("/audios/callring2.mp3"));
+    const callAudio = new Audio("/audios/callring2.mp3");
+    setCallAudio(callAudio);
 
     const getCallDetails = async () => {
       try {
@@ -411,6 +412,7 @@ function VirtualBackground() {
           type: callData.type,
         });
         sendNotification(notify);
+        callAudio.play();
       } else {
         try {
           ws.emit("accepting", {
