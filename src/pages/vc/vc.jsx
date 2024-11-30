@@ -1,6 +1,6 @@
 import {
-  // ScreenSearchDesktopOutlined,
-  // StopScreenShareOutlined,
+  ScreenSearchDesktopOutlined,
+  StopScreenShareOutlined,
   VideocamOffOutlined,
   // RadioButtonChecked,
   VideocamOutlined,
@@ -24,13 +24,14 @@ import "@tensorflow/tfjs";
 function VirtualBackground() {
   const userImage =
     JSON.parse(localStorage.getItem("user"))?.image.url || "/Profile.png";
-  const userName = JSON.parse(localStorage.getItem("user")).name;
   // const [IsCallRecording, setIsCallRecording] = useState(false);
+  const userName = JSON.parse(localStorage.getItem("user")).name;
+  // const [RecorderCanvas, setRecorderCanvas] = useState(null);
   const [RemoteCamToggle, setRemoteCamToggle] = useState(true);
   const [RemoteMicToggle, setRemoteMicToggle] = useState(true);
   const userId = JSON.parse(localStorage.getItem("user"))._id;
   const [PeerConnection, setPeerConnection] = useState(null);
-  // const [RecorderCanvas, setRecorderCanvas] = useState(null);
+  const [IsScreenShare, setIsScreenShare] = useState(false);
   const [RemoteStream, setRemoteStream] = useState(null);
   const [CurrentChat, setCurrentChat] = useState(null);
   const [LocalStream, setLocalStream] = useState(null);
@@ -40,8 +41,11 @@ function VirtualBackground() {
   const [CallAudio, setCallAudio] = useState(null);
   const [MicToggle, setMicToggle] = useState(true);
   const [CamToggle, setCamToggle] = useState(true);
+  const [VideoElem, setVideoElem] = useState(null);
   const [CamState, setCamState] = useState(false);
   const [MicState, setMicState] = useState(false);
+  const VirtualImageRef = useRef(new Image());
+  const [net, setNet] = useState(null);
   const RemoteVideoRef = useRef(null);
   const canvasRef = useRef(null);
   const { callId } = useParams();
@@ -49,6 +53,13 @@ function VirtualBackground() {
   const ws = socket;
 
   ws.connect();
+
+  useEffect(() => {
+    VirtualImageRef.current.src = virtualBackgroundImage;
+    const loadNet = async () => setNet(await bodyPix.load());
+
+    loadNet();
+  }, []);
 
   const getConstraints = async () => {
     const devices = await navigator.mediaDevices.enumerateDevices();
@@ -93,6 +104,71 @@ function VirtualBackground() {
       return newStream;
     } catch (err) {
       return Error("an Error Occurred");
+    }
+  };
+
+  const restartStream = async () => {
+    const prevMainStream = MainStream;
+
+    const constraints = await getConstraints();
+    const videoStream = await getMediaStream(constraints.video, "video");
+
+    if (videoStream instanceof MediaStream) {
+      const video = videoRef.current;
+      video.srcObject = videoStream;
+      setVideoElem(video);
+
+      prevMainStream.getVideoTracks().forEach((track) => {
+        track.stop();
+        prevMainStream.removeTrack(track);
+      });
+
+      videoStream.getVideoTracks().forEach((track) => {
+        prevMainStream?.addTrack(track);
+      });
+    }
+
+    setMainStream(prevMainStream);
+  };
+
+  const ScreenShare = async () => {
+    if (!IsScreenShare) {
+      await navigator.mediaDevices
+        .getDisplayMedia({ video: true, audio: false })
+        .then((stream) => {
+          const prevMainStream = MainStream;
+          prevMainStream
+            ?.getVideoTracks()
+            .map((track) => prevMainStream.removeTrack(track));
+
+          const video = videoRef.current;
+          video.srcObject = stream;
+          setVideoElem(video);
+
+          stream.getVideoTracks().forEach((track) => {
+            prevMainStream?.addTrack(track);
+            track.addEventListener("ended", (ev) => {
+              restartStream();
+              setIsScreenShare(false);
+            });
+          });
+
+          setMainStream(prevMainStream);
+          if (!CamToggle) {
+            socket.emit("change-event", {
+              state: true,
+              type: "video",
+              call_id: callId,
+              userId: userId,
+            });
+            setCamToggle(true);
+          }
+          setIsScreenShare(!IsScreenShare);
+        })
+        .catch((err) => console.log(err));
+    } else {
+      restartStream();
+      setIsScreenShare(!IsScreenShare);
     }
   };
 
@@ -150,7 +226,7 @@ function VirtualBackground() {
         }
       }
     };
-    
+
     ws.on("calling", handleCalling);
     ws.on("ringing", handleRinging);
     ws.on("declined", handleCallDeclined);
@@ -174,6 +250,8 @@ function VirtualBackground() {
         const constraints = await getConstraints();
 
         const mainStream = new MediaStream();
+        const localStream = new MediaStream();
+
         const videoStream = await getMediaStream(constraints.video, "video");
         const audioStream = await getMediaStream(constraints.audio, "audio");
 
@@ -231,72 +309,9 @@ function VirtualBackground() {
 
         const video = videoRef.current;
         video.srcObject = videoStream;
-
-        const net = await bodyPix.load();
+        setVideoElem(video);
 
         const canvas = canvasRef.current;
-        const ctx = canvas.getContext("2d");
-
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-
-        const virtualImage = new Image();
-        virtualImage.src = virtualBackgroundImage;
-
-        const processFrame = async () => {
-          try {
-            const videoTrackEnabled = mainStream.getVideoTracks()[0].enabled;
-
-            if (videoTrackEnabled) {
-              const segmentation = await net.segmentPerson(video);
-
-              canvas.width = video.videoWidth;
-              canvas.height = video.videoHeight;
-
-              ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-              ctx.globalCompositeOperation = "source-over";
-              ctx.drawImage(virtualImage, 0, 0, canvas.width, canvas.height);
-
-              const { width, height, data } = segmentation;
-              ctx.beginPath();
-              for (let y = 0; y < height; y++) {
-                for (let x = 0; x < width; x++) {
-                  const index = y * width + x;
-                  if (data[index] === 1) {
-                    ctx.rect(
-                      (x / width) * canvas.width,
-                      (y / height) * canvas.height,
-                      canvas.width / width,
-                      canvas.height / height
-                    );
-                  }
-                }
-              }
-              ctx.closePath();
-
-              ctx.globalCompositeOperation = "source-in";
-              ctx.clip();
-              ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-              ctx.globalCompositeOperation = "source-over";
-            } else {
-              canvas.width = video.videoWidth;
-              canvas.height = video.videoHeight;
-
-              ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-              ctx.fillStyle = "black";
-              ctx.fillRect(0, 0, canvas.width, canvas.height);
-            }
-
-            requestAnimationFrame(processFrame);
-          } catch (err) {
-            console.log(err);
-          }
-        };
-
-        const localStream = new MediaStream();
 
         const videoTrack = canvas.captureStream().getVideoTracks()[0];
         const audioTrack = mainStream.getAudioTracks()[0];
@@ -306,8 +321,6 @@ function VirtualBackground() {
 
         setLocalStream(localStream);
         setMainStream(mainStream);
-
-        processFrame();
       } catch (error) {
         console.error("Error accessing media devices:", error);
       }
@@ -316,7 +329,94 @@ function VirtualBackground() {
     if (videoRef.current || canvasRef.current) {
       initVideoStream();
     }
-  }, [ws, userId, callId, videoRef.current, canvasRef.current]);
+  }, [
+    ws,
+    userId,
+    callId,
+    videoRef.current,
+    canvasRef.current,
+  ]);
+
+  useEffect(() => {
+    if (!VideoElem || !MainStream) return;
+
+    const processFrame = async () => {
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext("2d");
+
+      if (!IsScreenShare) {
+        const videoTrackEnabled = MainStream.getVideoTracks()[0].enabled;
+
+        if (videoTrackEnabled) {
+          try {
+            const segmentation = await net.segmentPerson(VideoElem);
+
+            canvas.width = VideoElem.videoWidth;
+            canvas.height = VideoElem.videoHeight;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.globalCompositeOperation = "source-over";
+            ctx.drawImage(
+              VirtualImageRef.current,
+              0,
+              0,
+              canvas.width,
+              canvas.height
+            );
+
+            const { width, height, data } = segmentation;
+            ctx.beginPath();
+            for (let y = 0; y < height; y++) {
+              for (let x = 0; x < width; x++) {
+                const index = y * width + x;
+                if (data[index] === 1) {
+                  ctx.rect(
+                    (x / width) * canvas.width,
+                    (y / height) * canvas.height,
+                    canvas.width / width,
+                    canvas.height / height
+                  );
+                }
+              }
+            }
+            ctx.closePath();
+
+            ctx.globalCompositeOperation = "source-in";
+            ctx.clip();
+            ctx.drawImage(VideoElem, 0, 0, canvas.width, canvas.height);
+
+            ctx.globalCompositeOperation = "source-over";
+          } catch (err) {
+            canvas.width = VideoElem.videoWidth;
+            canvas.height = VideoElem.videoHeight;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.drawImage(VideoElem, 0, 0, canvas.width, canvas.height);
+          }
+        } else {
+          canvas.width = VideoElem.videoWidth;
+          canvas.height = VideoElem.videoHeight;
+
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          ctx.fillStyle = "black";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+      } else {
+        canvas.width = VideoElem.videoWidth;
+        canvas.height = VideoElem.videoHeight;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        ctx.drawImage(VideoElem, 0, 0, canvas.width, canvas.height);
+      }
+    };
+
+    const intervalId = setInterval(processFrame, 1000 / 120);
+    return () => clearInterval(intervalId);
+  }, [IsScreenShare, MainStream, VideoElem, net]);
 
   useEffect(() => {
     if (!LocalStream) return;
@@ -582,6 +682,16 @@ function VirtualBackground() {
           disabled={MicState}
         >
           {!MicToggle ? <MicOff /> : <Mic />}
+        </button>
+        <button
+          className="p-3 mx-4 text-light bg-success rounded-full"
+          onClick={ScreenShare}
+        >
+          {!IsScreenShare ? (
+            <ScreenSearchDesktopOutlined />
+          ) : (
+            <StopScreenShareOutlined />
+          )}
         </button>
         <button
           className="bg-danger text-light rounded-full p-3 mx-4"
